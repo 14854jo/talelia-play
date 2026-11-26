@@ -1,0 +1,315 @@
+/* TALELIA · battle.css — 전투 프로토타입 전용 (마을 CSS 와 분리)
+ *  전장 = 16:9 · 창 크기에 맞춰 늘어남. 전장 안의 크기 · 위치는 전장 폭 기준(cqw · %)이라 함께 커지고 작아짐 (전장 폭 1280 일 때 1cqw = 12.8px)
+ *  캐릭터 배치 · 화면 키 · 배경 · 대비 수치는 js/battle/view.js 맨 위 FX (임시값) */
+body{background:#141920;color:var(--tl-ink);font-family:var(--tl-font);font-size:14px}
+.bt{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px}
+
+/* ---------- 전장 ---------- */
+.bt-field{position:relative;width:min(100%, calc((100vh - var(--bt-tools-h, 104px)) * 16 / 9));aspect-ratio:16/9;container-type:inline-size;overflow:hidden;
+  border-radius:12px;background:#2b3440;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+.bt-bg{position:absolute;inset:0;background:#2b3440 var(--bt-bg, none) center bottom / cover no-repeat}
+.bt-bg::after{content:'';position:absolute;inset:0;pointer-events:none;   /* 배경 어둡게: 전체 + 아래쪽(발밑 표시판 · 캐릭터 발 근처) 더 어둡게 */
+  background:linear-gradient(to bottom, rgba(8,11,16,0) 50%, rgba(8,11,16,var(--bt-dim-bottom, .35)) 92%), rgba(8,11,16,var(--bt-dim, .25))}
+.bt-units{position:absolute;inset:0}
+
+/* ---------- 캐릭터: 칸(.bt-unit) = 발 위치 한 점 · 그림은 그 위 · 표시판은 그 아래 ---------- */
+.bt-unit{position:absolute;width:0;height:0}
+.bt-shadow{position:absolute;left:0;top:0;width:var(--sw, 8cqw);height:calc(var(--sw, 8cqw) * .24);translate:-50% -50%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side, rgba(0,0,0,.55), rgba(0,0,0,.28) 60%, rgba(0,0,0,0))}
+.bt.no-shadow .bt-shadow{background:none}
+.bt-actor{position:absolute;left:0;bottom:0;translate:-50% 0;isolation:isolate;transform-origin:50% 100%;cursor:pointer}
+.bt-fig{height:var(--fh, 7.5cqw);display:flex;align-items:flex-end;justify-content:center}
+.bt-fig--img{width:auto;max-width:none;object-fit:contain;transform:scaleX(-1)}   /* 아군 정지 그림은 왼쪽을 봄 → 오른쪽(적)을 보도록 반전 */
+.bt-unit--enemy .bt-fig--img{transform:none}                                      /* 적 그림은 처음부터 왼쪽을 봄 → 반전 없음 */
+.bt.has-outline .bt-fig{filter:drop-shadow(0 0 1px rgba(255,248,230,.9)) drop-shadow(0 0 3px rgba(255,248,230,.35))}
+.bt-fig--shape{width:var(--fh, 7.5cqw);height:var(--fh, 7.5cqw);align-items:center;background:var(--c);color:#fff;font-weight:700;font-size:max(10px, .9cqw);box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}
+.bt-fig--square{border-radius:10px}.bt-fig--circle{border-radius:50%}
+.bt-floats{position:absolute;left:0;bottom:calc(var(--fh, 7.5cqw) + .6cqw);width:0;height:0;pointer-events:none;z-index:5}
+
+/* 발밑 표시판: 이름 · HP · 쿨타임 · 강화 */
+.bt-plate{position:absolute;left:0;top:.9cqw;translate:-50% 0;width:9.6cqw;padding:.25cqw .45cqw .35cqw;border-radius:.6cqw;text-align:center;cursor:pointer;
+  background:rgba(14,18,24,.62);color:#f3ead8;box-shadow:0 1px 4px rgba(0,0,0,.35);font-size:max(9px, .72cqw);line-height:1.25}
+.bt-name{font-weight:700;font-size:max(10px, .8cqw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt-hp{position:relative;height:max(7px, .62cqw);margin-top:.2cqw;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+.bt-hp i{position:absolute;inset:0 auto 0 0;background:#4fbf7f;transition:width .35s}
+.bt-hp[data-level="mid"] i{background:#e0ad46}.bt-hp[data-level="lo"] i{background:#e0624a}
+.bt-hp b{position:absolute;inset:0;font-size:max(7px, .5cqw);line-height:max(7px, .62cqw);font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6)}
+.bt-tags{display:flex;flex-direction:column;gap:.1cqw;margin-top:.1cqw}   /* V3: 패시브 강화 한 줄이 처음부터 붙어도 이름표가 옆 캐릭터를 가리지 않게 촘촘히 */
+.bt-tags:empty,.bt-buffs:empty,.bt-cds:empty{display:none}
+.bt-buffs,.bt-cds{display:flex;gap:.2cqw;justify-content:center;flex-wrap:nowrap}   /* 강화 한 줄 · 쿨타임 한 줄 */
+.bt-buffs span,.bt-cds span{font-size:max(8px, .55cqw);padding:0 .3cqw;border-radius:.4cqw;background:rgba(255,255,255,.14);color:#e9dfcb;white-space:nowrap}
+.bt-buffs span{background:#3d6fb6;color:#fff}
+.bt-cds span.ready{background:var(--tl-gold);color:var(--tl-ink)}
+/* 상태이상 (v2 5단계 · 아이콘 표 = view.js STATUS_ICON): 강화 칩 옆 · 나쁜 효과 = 붉은 · 보라 계열 (강화 = 파랑과 구분) · 남은 턴 = 오른쪽 아래 작은 숫자 */
+.bt-effrow{display:flex;gap:.2cqw;justify-content:center;flex-wrap:nowrap;align-items:center}
+.bt-effrow[hidden]{display:none}
+.bt-status{display:inline-flex;gap:.15cqw}
+.bt-status:empty{display:none}
+.bt-st{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:max(15px, 1.05cqw);height:max(14px, .95cqw);padding:0 .12cqw;border-radius:.4cqw;
+  font-size:max(9px, .62cqw);line-height:1;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.bt-st i{font-style:normal;display:block}
+.bt-st i img{display:block;width:max(11px, .8cqw);height:max(11px, .8cqw);object-fit:contain}
+.bt-st small{position:absolute;right:-.18cqw;bottom:-.2cqw;min-width:max(8px, .5cqw);padding:0 1px;border-radius:99px;background:#14181e;color:#fff;font-size:max(7px, .45cqw);font-weight:800;line-height:1.15;text-align:center}
+.bt-st--stun{background:#8a6a1e}
+.bt-st--poison{background:#6c3a8f}
+.bt-st--weaken{background:#a8423a}
+.bt-st--silence{background:#5b5f78}
+.bt-st--thorn{background:#6b5a3a}
+.bt-st--thorn.is-worn{background:#a8423a}
+/* 기절: 머리 위 회전 별 + 캐릭터 흐리게 (움직임 줄이기 = 별 · 흐림 없이 아이콘만) */
+.bt-stunfx{position:absolute;left:0;bottom:calc(var(--fh, 7.5cqw) - .2cqw);width:0;height:0;pointer-events:none;z-index:4;display:none}
+.bt-unit.is-stunned .bt-stunfx{display:block}
+.bt-stunfx__ring{position:absolute;left:-2.2cqw;top:-.4cqw;width:4.4cqw;height:1.6cqw;transform:scaleY(.42)}
+.bt-stunfx__ring i{position:absolute;left:50%;top:50%;font-style:normal;color:#ffd84a;font-size:max(13px, 1.3cqw);line-height:1;text-shadow:0 0 4px rgba(255,200,60,.9),0 1px 0 #6a4a00;
+  translate:-50% -50%;animation:bt-stun-orbit 1.1s linear infinite}
+.bt-stunfx__ring i:nth-child(2){animation-delay:-.367s}.bt-stunfx__ring i:nth-child(3){animation-delay:-.733s}
+.bt-unit.is-stunned .bt-pose{opacity:.55;filter:saturate(.45) brightness(.9)}
+.bt.is-reduced .bt-stunfx{display:none !important}
+.bt.is-reduced .bt-unit.is-stunned .bt-pose{opacity:1;filter:none}
+.bt-q.is-stunned{background:rgba(120,120,120,.45);color:#c9c9c9;box-shadow:inset 0 0 0 2px #888}
+.bt-q__st{font-style:normal;margin-right:3px}
+/* 적 n명: 대상을 고를 때 함께 맞을 이웃 = 발밑 점선 고리 */
+.bt-unit.is-splash .bt-shadow{outline:.16cqw dashed #ffb47a;outline-offset:.18cqw}
+.bt-unit.is-splash .bt-fig{filter:drop-shadow(0 0 4px rgba(255,170,110,.55))}
+
+/* 상태: 지금 차례 = 발밑 금색 고리 · 고를 수 있는 대상 = 붉은 고리 + 외곽 빛 · 막힘 = 흐리게 · 쓰러짐 = 회색 */
+.bt-unit.is-turn .bt-shadow{box-shadow:0 0 0 .2cqw rgba(215,183,121,.95), 0 0 1cqw rgba(215,183,121,.7)}
+.bt-unit.is-turn .bt-plate{box-shadow:0 0 0 1px rgba(215,183,121,.9), 0 1px 4px rgba(0,0,0,.35)}
+.bt-unit.is-target .bt-shadow{box-shadow:0 0 0 .22cqw #ff6a55, 0 0 1.1cqw rgba(255,106,85,.8);animation:bt-ring .9s ease-in-out infinite}
+.bt-unit.is-target .bt-fig{filter:drop-shadow(0 0 2px #ff8a70) drop-shadow(0 0 6px rgba(255,106,85,.6))}
+.bt-unit.is-blocked .bt-actor,.bt-unit.is-blocked .bt-plate{opacity:.4}
+.bt-unit.is-down .bt-actor,.bt-unit.is-down .bt-plate{opacity:.35;filter:grayscale(1)}
+.bt-unit.is-down .bt-shadow{opacity:.4}
+
+.bt-float{position:absolute;left:0;translate:-50% 0;font-weight:800;font-size:max(14px, 1.5cqw);white-space:nowrap;text-shadow:0 1px 0 #000,0 0 5px rgba(0,0,0,.8);animation:bt-float 1.1s ease-out forwards}
+.bt-float--damage{color:#ff8a70}.bt-float--heal{color:#7ee3a4}.bt-float--buff{color:#9cc4ff;font-size:max(12px, 1.15cqw)}
+.bt-float--poison{color:#c79bff}                                                      /* 중독 피해 "☠ -42" (보라) */
+.bt-float--status{color:#ff9ad0;font-size:max(12px, 1.1cqw)}                          /* 걸림 "약화" · "중독" · "기절" */
+.bt-float--resist{color:#d6dbe2;font-size:max(11px, 1cqw)}                            /* 막힘 "저항" · "면역" */
+.bt-float--stun{color:#ffd84a;font-size:max(15px, 1.6cqw);top:-.9cqw}                /* 기절 차례 "기절!" (머리 위 별 바로 위) */
+.bt-result{position:absolute;left:50%;top:46%;translate:-50% -50%;z-index:960;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 28px;border-radius:14px;background:rgba(251,246,236,.96);box-shadow:var(--tl-shadow-lg)}
+/* 결과창 · 라운드 띠는 캐릭터 층(.bt-unit z-index = 발 높이 × 10 · 돌진 중 900) · 이펙트 캔버스(905)보다 위 */
+.bt-result b{font-size:30px}.bt-result[data-result="win"] b{color:var(--tl-ok)}.bt-result[data-result="lose"] b{color:var(--tl-bad)}
+.bt-result button{padding:6px 16px;border-radius:var(--tl-r-pill);background:var(--tl-forest);color:var(--tl-cream);font-weight:700}
+.bt-result button.bt-result__sub{background:none;color:var(--tl-forest);box-shadow:inset 0 0 0 1.5px var(--tl-forest)}   /* 이야기로 돌아가기 (덜 강조) */
+.bt-result[data-result="error"] b{font-size:20px;color:var(--tl-bad)}
+/* 스테이지 패배: 동료 모으기 안내 (1-2 첫 패배 = is-first 로 크게) */
+.bt-recruit{display:flex;flex-direction:column;align-items:center;gap:6px;margin:2px 0;text-align:center;color:#4a4032}
+.bt-recruit p{margin:0;font-size:13px;max-width:26em;word-break:keep-all}
+.bt-recruit__btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.bt-recruit.is-first{padding:10px 14px;border-radius:12px;background:#fff3d2;box-shadow:inset 0 0 0 2px var(--tl-gold,#d7b779)}
+.bt-recruit.is-first p{font-size:15px;font-weight:800}
+.bt-recruit.is-first button:not(.bt-result__sub){padding:8px 22px;font-size:16px}
+@container (max-width: 760px){
+  .bt-result:has(.bt-recruit){width:max-content;max-width:96%;padding:6px 14px;gap:2px}
+  .bt-result:has(.bt-recruit) b{font-size:20px}
+  .bt-result:has(.bt-recruit) > span{font-size:11px}
+  .bt-recruit p,.bt-recruit.is-first p{font-size:12px}
+  .bt-recruit.is-first{padding:5px 10px;gap:4px}
+}
+/* 이야기에서 온 전투(?encounter=): 아래 도구 줄 숨김 · 전장을 그만큼 크게 */
+/* 필살기 영상 덮개 (js/battle/view.js ultVideo) : 화면 전체 · 영상은 비율 유지(위아래 · 좌우 검은 띠) · 누르면 건너뛰기 */
+.bt-video{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:#05070a;cursor:pointer;opacity:0;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+.bt-video__frame{position:relative;width:min(100vw, calc(100vh * 16 / 9));width:min(100vw, calc(100dvh * 16 / 9));aspect-ratio:16/9}
+.bt-video__frame video,.bt-video__frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.bt-video__skip{position:absolute;right:max(12px, 2vw);bottom:max(12px, 2vh);padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.5);color:#f3ead8;font-size:13px;pointer-events:none}
+.bt.is-story{--bt-tools-h:16px}
+.bt.is-story .bt-toolbar{display:none}
+html:not(.is-dev) .bt{--bt-tools-h:16px}   /* 일반 접속: 아래 도구 줄 없음 */
+
+/* ---------- 전장 위에 겹치는 표시 ---------- */
+.bt-hud{position:absolute;left:0;right:0;z-index:50;display:flex;align-items:center;gap:.8cqw;padding:.7cqw 1cqw;color:#f3ead8;pointer-events:none}
+.bt-hud > *{pointer-events:auto}
+.bt-hud--top{top:0;background:linear-gradient(rgba(10,13,18,.75), rgba(10,13,18,0))}
+.bt-hud--bottom{bottom:0;background:linear-gradient(rgba(10,13,18,0), rgba(10,13,18,.82) 45%);padding-top:2cqw}
+.bt-round{font-weight:700;white-space:nowrap;font-size:max(11px, .95cqw)}
+.bt-queue{display:flex;gap:.4cqw;margin:0;padding:0;list-style:none;overflow:hidden;flex:1}
+.bt-q{padding:.25cqw .7cqw;border-radius:99px;font-size:max(10px, .85cqw);white-space:nowrap;background:rgba(255,255,255,.12)}
+.bt-q small{margin-left:4px;opacity:.7}
+.bt-q--ally{box-shadow:inset 0 0 0 2px #7fc29b}.bt-q--enemy{box-shadow:inset 0 0 0 2px #e08f7d}
+.bt-q.is-now{background:var(--tl-gold);color:var(--tl-ink);font-weight:700}
+.bt-temp{background:var(--tl-coral, #D98772);color:#fff;font-size:max(10px, .8cqw);font-weight:700;padding:.2cqw .7cqw;border-radius:99px}
+.bt-hud-btn{padding:.3cqw .8cqw;border-radius:99px;background:rgba(255,255,255,.16);color:#f3ead8;font-weight:700;font-size:max(10px, .85cqw)}
+.bt-turn{white-space:nowrap;font-size:max(11px, .95cqw)}
+.bt-turn b{color:var(--tl-gold)}
+.bt-actions{display:flex;gap:.6cqw;align-items:center;flex:1;min-height:3cqw}
+.bt-skills{display:flex;gap:.6cqw;flex-wrap:wrap;align-items:center}
+.bt-skill{padding:.4cqw 1cqw;border-radius:.7cqw;background:var(--tl-forest);color:var(--tl-cream);font-weight:700;text-align:left;font-size:max(11px, .95cqw);box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+.bt-skill small{display:block;font-weight:400;font-size:max(9px, .72cqw);opacity:.8}
+.bt-skill.is-on{background:var(--tl-gold);color:var(--tl-ink)}
+.bt-hint{font-size:max(10px, .8cqw);color:#d8cdb8}
+.bt-btn{padding:5px 12px;border-radius:var(--tl-r-pill);background:var(--tl-surface-2);color:var(--tl-ink);font-weight:700;font-size:13px}
+.bt-btn.is-on{background:var(--tl-forest);color:var(--tl-cream)}
+.bt-hud .bt-btn{font-size:max(11px, .9cqw)}
+.bt-step{background:var(--tl-gold)}
+.bt-auto.is-on{background:var(--tl-coral, #D98772);color:#fff}
+
+/* 로그 서랍 (오른쪽 · 기본 닫힘) */
+.bt-logbox{position:absolute;right:0;top:3.6cqw;bottom:5.2cqw;z-index:55;width:min(34cqw, 420px);display:flex;flex-direction:column;padding:10px 12px;
+  border-radius:12px 0 0 12px;background:rgba(251,246,236,.97);box-shadow:-6px 0 20px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .25s}
+.bt-logbox.is-open{transform:none}
+.bt-logbox h2{font-size:14px;margin-bottom:6px}.bt-logbox h2 small{font-weight:400;color:var(--tl-ink-soft);font-size:11px;margin-left:4px}
+.bt-log{flex:1;min-height:0;overflow:auto;margin:0;padding:0 0 0 2px;list-style:none;font-size:11.5px;line-height:1.45}
+.bt-log li{padding:3px 0;border-bottom:1px dashed var(--tl-line)}
+.bt-log--sys{color:var(--tl-ink-soft);font-weight:700}.bt-log--ally{color:#1d5b3c}.bt-log--enemy{color:#7a2e22}
+
+/* ---------- 전장 아래 도구 줄 ---------- */
+.bt-toolbar{width:min(100%, calc((100vh - var(--bt-tools-h, 104px)) * 16 / 9));display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d8cdb8;font-size:12px}
+.bt-seg{display:inline-flex;gap:2px;padding:2px;border-radius:var(--tl-r-pill);background:rgba(255,255,255,.08)}
+.bt-seed input{width:64px;padding:3px 6px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:#fff;color:var(--tl-ink)}
+.bt-autos{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bt-label{font-weight:700;color:#bfb39c}
+.bt-check{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+
+/* ---------- 연출 (움직임은 view.js 스크립트 · 수치는 view.js 맨 위 FX) ---------- */
+.bt-pose{transform-origin:50% 100%;animation:bt-breathe var(--bt-breathe-period, 2.4s) ease-in-out var(--d, 0s) infinite;transition:scale .15s}
+.bt-unit.is-down .bt-pose{animation:none}
+.bt-unit.is-turn .bt-pose{scale:var(--bt-turn-scale, 1.06)}
+.bt-fx{position:absolute;pointer-events:none}
+.bt-fx-dot{left:0;top:0;z-index:120;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px #e0a33a,0 0 8px 2px rgba(255,214,120,.9)}
+.bt-fx-dot--enemy{background:#ffe0ea;box-shadow:0 0 0 2px #b0476b,0 0 8px 2px rgba(240,120,160,.85)}
+.bt-fx-dot--heal{background:#bff0d2;box-shadow:0 0 0 2px #2f8a5b,0 0 10px 3px rgba(79,209,139,.85)}
+.bt-fx-walnut{left:0;top:0;z-index:125;border-radius:50%;background:radial-gradient(circle at 35% 30%, #c8955a, #8a5a2b 70%);box-shadow:inset 0 -6px 0 rgba(0,0,0,.2),0 4px 10px rgba(0,0,0,.25)}
+.bt-fx-slash{z-index:135;transform-origin:50% 50%;opacity:0}
+.bt-fx-slash svg{display:block;overflow:visible}
+.bt-fx-dust{left:0;top:0;z-index:122;border-radius:50%;opacity:0}
+.bt-fx-glow{inset:-6%;border-radius:50%;box-shadow:0 0 0 3px #6fa8ff,0 0 16px 4px rgba(111,168,255,.75);opacity:0;z-index:2}
+.bt-fx-dim{inset:0;z-index:115;background:#000;opacity:0}
+.bt-fx-banner{left:50%;top:42%;z-index:140;white-space:nowrap;font-size:max(24px, 3cqw);font-weight:900;color:#fff8e6;letter-spacing:2px;
+  text-shadow:0 2px 0 #8a5a2b,0 0 18px rgba(255,200,90,.9);opacity:0}
+.bt.is-busy .bt-skill{pointer-events:none;opacity:.6}
+
+@keyframes bt-ring{50%{opacity:.55}}
+@keyframes bt-breathe{50%{translate:0 calc(-1 * var(--bt-breathe-px, 1.5px))}}
+@keyframes bt-float{0%{opacity:0;margin-top:6px}15%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-34px}}
+@keyframes bt-float-fade{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@keyframes bt-stun-orbit{0%{transform:translate(2cqw,0) scaleY(2.4)}25%{transform:translate(0,.7cqw) scaleY(2.4)}50%{transform:translate(-2cqw,0) scaleY(2.4)}75%{transform:translate(0,-.7cqw) scaleY(2.4)}100%{transform:translate(2cqw,0) scaleY(2.4)}}
+/* 움직임 줄이기 (브라우저 설정 또는 ?motion=reduce · view.js 가 .is-reduced 를 붙임): 움직임은 끄고 숫자는 제자리에서 나타났다 사라짐 */
+.bt.is-reduced *:not(.bt-float){animation:none !important;transition:none !important}
+.bt.is-reduced .bt-float{animation-name:bt-float-fade}
+
+/* ---------- 파츠 리그 (js/battle/rig-stage.js): 정지 그림 상자 위에 캔버스를 겹침 · 리그가 준비되면 캔버스만 보임 · 실패하면 정지 그림 그대로 ---------- */
+.bt-fig--rig{position:relative;width:calc(var(--fh, 7.5cqw) * 1.25)}
+.bt-fig--rig .bt-fig--img{height:100%;width:auto;max-width:none;object-fit:contain}
+.bt-rig-canvas{position:absolute;left:50%;bottom:0;width:calc(var(--fh, 7.5cqw) * 2.5);height:calc(var(--fh, 7.5cqw) * 1.5625);transform:translateX(-50%);pointer-events:none;visibility:hidden}
+.bt-fig--rig.is-rig-ready .bt-rig-canvas{visibility:visible}
+.bt-fig--rig.is-rig-ready .bt-fig--img{visibility:hidden}
+.bt-pose.has-rig{animation:none}   /* 리그가 대기 동작을 그리므로 CSS 숨쉬기는 끔 */
+
+/* ---------- 뽑기 편성으로 시험 전투 (?party=1 · .bt.is-party) ---------- */
+.bt.is-party{--bt-tools-h:16px}
+.bt.is-party .bt-toolbar{display:none}
+.bt.is-party .bt-plate{width:8.2cqw}
+.bt-skill__note{display:inline-block !important;margin-top:.15cqw;padding:0 .4cqw;border-radius:.4cqw;background:rgba(255,217,138,.25);color:#ffd98a;opacity:1 !important}
+.bt-result__tiers{display:flex;gap:6px}
+.bt-result__tiers button[aria-pressed="true"]{background:var(--tl-forest);color:var(--tl-cream)}
+/* 작은 전장(휴대폰 가로 등): 이름표는 이름 · HP 바만 (쿨타임 · 강화 칩 · HP 숫자는 숨김 · 글자 최소 크기 때문에 이름표가 커져 겹치지 않게) */
+@container (max-width: 760px){
+  .bt.is-party .bt-cds,.bt.is-party .bt-buffs,.bt.is-party .bt-hp b{display:none}
+  .bt.is-party .bt-tags{margin:0}
+  /* 상태이상 아이콘은 작은 화면에서도 보임: 이름표 오른쪽 위 모서리에 겹쳐 이름표 높이는 그대로 */
+  .bt.is-party .bt-effrow{position:absolute;right:-4px;top:-9px}
+  .bt.is-party .bt-st{min-width:13px;height:12px;font-size:8px}
+  .bt.is-party .bt-st small{font-size:7px}
+  .bt.is-party .bt-plate{width:8.6cqw;padding:.2cqw .3cqw .35cqw;top:.6cqw}
+  .bt.is-party .bt-name{font-size:9px}
+  .bt.is-party .bt-hp{height:5px}
+}
+/* 휴대폰 세로: 가로로 돌려 달라는 안내 (그래도 보기 = rotate-ok) */
+.bt-rotate{display:none}
+@media (orientation: portrait) and (max-width: 700px){
+  .bt:is(.is-party,.is-story):not(.rotate-ok) .bt-rotate{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,13,18,.92)}
+}
+.bt-rotate__box{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:320px;text-align:center;color:#f3ead8;line-height:1.5}
+.bt-rotate__icon{font-size:44px;line-height:1}
+.bt-rotate__box b{font-size:20px}
+.bt-rotate__box span{font-size:14px;color:#d8cdb8}
+.bt-rotate__box button{min-height:44px;padding:8px 22px;border-radius:var(--tl-r-pill, 99px);background:var(--tl-gold, #d7b779);color:var(--tl-ink, #2a2218);font-weight:800}
+
+/* ---------- 뽑기 캐릭터 공격 이펙트 캔버스 (js/battle/fx-kit.js · 시험 전투만) ---------- */
+.bt-fxcanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:905}
+
+/* ---------- 던전 전투 (?dungeon= · E4) : 라운드 띠 · 보상 카드 ---------- */
+.bt-roundbanner{position:absolute;left:0;right:0;top:34%;z-index:950;display:flex;flex-direction:column;align-items:center;gap:2px;padding:1.1cqw 0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(20,28,26,.78) 22%,rgba(20,28,26,.78) 78%,transparent);color:var(--tl-cream,#fbf6ec);
+  animation:bt-banner var(--bt-banner-dur,1100ms) ease-out both}
+.bt-roundbanner small{font-size:max(12px,1.1cqw);letter-spacing:.08em;opacity:.85}
+.bt-roundbanner b{font-size:max(26px,3.4cqw);font-weight:900;letter-spacing:.12em}
+.bt-roundbanner.is-boss b{color:#ffb36b;text-shadow:0 0 .8cqw rgba(255,120,40,.6)}
+@keyframes bt-banner{0%{opacity:0;transform:scaleX(.7)}14%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+.bt.is-reduced .bt-roundbanner{animation:bt-banner-fade var(--bt-banner-dur,1100ms) linear both}
+@keyframes bt-banner-fade{0%,85%{opacity:1}100%{opacity:0}}
+.bt-reward{display:flex;align-items:center;gap:12px;margin:4px 0}
+.bt-reward.is-none{flex-direction:column;gap:0;font-weight:700;color:#6a5d4c}
+.bt-reward.is-none small{font-weight:400}
+.bt-reward__gold{font-size:18px;font-weight:800;color:#7a5a14}
+.bt-reward__gold i{font-style:normal;color:#d9a520;margin-right:4px}
+.bt-reward__note{color:#6a5d4c}
+.bt-gear{--g:var(--tl-tier-common);display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:92px;min-height:96px;padding:8px 10px;border-radius:12px;
+  background:#fff;box-shadow:inset 0 0 0 3px var(--g),0 2px 8px rgba(0,0,0,.12)}
+.bt-gear em{font-style:normal;font-size:12px;font-weight:800;color:#fff;background:var(--g);border-radius:99px;padding:1px 10px}
+.bt-gear b{font-size:20px !important;color:var(--g) !important;margin-top:4px}
+.bt-gear small{font-size:12px;color:#6a5d4c}
+.bt-gear--uncommon{--g:var(--tl-tier-rare)}.bt-gear--hero{--g:var(--tl-tier-hero)}
+.bt-gear--legend{--g:var(--tl-tier-legendary);background:linear-gradient(#fff8e6,#fff);box-shadow:inset 0 0 0 3px var(--g),0 0 14px rgba(255,200,90,.7)}
+.bt-left{color:#6a5d4c}
+.bt-result__row{display:flex;gap:8px;margin-top:4px}
+.bt-result button:disabled{opacity:.45;cursor:not-allowed}
+
+/* 스테이지 변이 해충 (S2 · 결정 13): 같은 그림에 보라빛 색 필터(초록 → 보라) · 기절 표시(.bt-pose 필터)와 함께 쓰이도록 따로 정의 */
+.bt-unit.is-mutant .bt-pose{filter:hue-rotate(185deg) saturate(1.15) contrast(1.05)}
+.bt-unit.is-mutant.is-stunned .bt-pose{filter:hue-rotate(185deg) saturate(.55) brightness(.9)}
+
+/* V3: 패시브 강화(전투 시작부터 붙음)가 이름표 높이를 늘려 옆 캐릭터를 가리지 않도록, 좁은 전장(< 1000px)에서는 강화 줄을 이름표 위쪽 경계에 겹쳐 둠 (이름표 크기는 그대로) */
+@container (max-width: 1000px){
+  .bt-plate{position:absolute}
+  .bt-tags .bt-buffs{position:absolute;left:50%;bottom:100%;translate:-50% 0;margin-bottom:1px;pointer-events:none}
+}
+
+/* ===================== 모바일 보정 (지인 배포 4단계) ===================== */
+/* 주소창에 가리지 않게 보이는 높이(dvh) 기준. var() 가 든 선언은 두 번 적어도 옛 값으로 돌아가지 않으므로 @supports 로 감쌈 (미지원 = 위의 100vh 그대로) */
+@supports (height: 100dvh){
+  .bt{min-height:100dvh}
+  .bt-field,.bt-toolbar{width:min(100%, calc((100dvh - var(--bt-tools-h, 104px)) * 16 / 9))}
+}
+.bt-queue{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}   /* 넘치는 순서 칩은 잘리지 않고 흐려짐 */
+.bt-result__row{flex-wrap:wrap;justify-content:center}
+.bt .bt-logbox{z-index:955}   /* 열린 로그 위로 캐릭터(발 높이 × 10)가 겹쳐 그려지지 않게 · 결과창(960)보다는 아래 */
+
+/* 작은 전장(휴대폰): 누르는 버튼을 크게 · 이름이 덜 잘리게 */
+@container (max-width: 760px){
+  .bt-hud .bt-hud-btn{min-height:28px;padding:0 10px}
+  .bt-hud .bt-auto,.bt-hud .bt-step{min-height:36px}
+  .bt-hud .bt-skill{min-height:36px}
+}
+@container (max-width: 700px){
+  .bt.is-party .bt-plate{width:9.8cqw;padding-left:.1cqw;padding-right:.1cqw}
+  .bt.is-party .bt-name{letter-spacing:-.04em}
+}
+
+/* 휴대폰 세로 [그래도 보기]: 전장(16:9) 안에 겹치던 위 · 아래 표시를 전장 바깥 위 · 아래로 */
+@media (orientation: portrait) and (max-width: 700px){
+  .bt{justify-content:center;padding:8px 6px}
+  .bt-field{overflow:visible;margin:96px 0 170px;width:100%}
+  .bt-bg{border-radius:12px;overflow:hidden}
+  .bt .bt-hud--top{top:auto;bottom:100%;flex-wrap:wrap;gap:6px;padding:0 0 8px;background:none}
+  .bt .bt-round{flex:1 1 100%;white-space:normal;font-size:13px}
+  .bt .bt-queue{flex:1 1 100%;order:1}
+  .bt .bt-q{font-size:11px;padding:2px 8px}
+  .bt .bt-hud--top .bt-hud-btn{min-height:34px;font-size:12px}
+  .bt .bt-hud--bottom{bottom:auto;top:100%;flex-wrap:wrap;align-content:flex-start;gap:8px;padding:10px 0 0;background:none}
+  .bt .bt-turn{flex:1 1 100%;white-space:normal;font-size:13px}
+  .bt .bt-actions{flex:1 1 100%;flex-wrap:wrap;gap:8px}
+  .bt .bt-skills{gap:8px}
+  .bt .bt-hud .bt-skill{min-height:48px;padding:6px 12px;border-radius:10px;font-size:13px}
+  .bt .bt-hud .bt-skill small{font-size:11px}
+  .bt .bt-hint{flex-basis:100%;font-size:11px}
+  .bt .bt-hud .bt-auto,.bt .bt-hud .bt-step{min-height:44px;font-size:13px}
+  .bt .bt-unit .bt-plate{width:8.6cqw;padding:1px;top:2px}
+  .bt .bt-unit .bt-name,.bt .bt-unit .bt-hp b,.bt .bt-unit .bt-cds,.bt .bt-unit .bt-buffs{display:none}   /* 좁은 전장: 이름표는 HP 막대만 (차례는 아래 "지금 차례"와 테두리로) */
+  .bt .bt-unit .bt-hp{height:5px;margin:0}
+  .bt .bt-logbox{position:fixed;left:8px;right:8px;top:45%;bottom:8px;width:auto;border-radius:12px;transform:none;visibility:hidden}
+  .bt .bt-logbox.is-open{visibility:visible}
+  .bt .bt-result{position:fixed;width:max-content;max-width:94vw;max-height:88vh;overflow:auto}
+}

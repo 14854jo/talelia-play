@@ -1,0 +1,55 @@
+/* TALELIA · variables.css — 디자인 토큰 (공식 디자인 명세서 8.1 색상) */
+:root{
+  /* 브랜드 색 */
+  --tl-forest:#253B35;   /* Forest Green */
+  --tl-gold:#D7B779;     /* Warm Gold */
+  --tl-navy:#26334D;     /* Royal Navy */
+  --tl-cream:#E8DCC5;    /* Cream Beige */
+  --tl-violet:#9C83C7;   /* Mystic Violet */
+  --tl-coral:#D98772;    /* Coral Red */
+
+  /* 역할 색 */
+  --tl-bg:#cfe6c4;                 /* 마을 하늘·들판 */
+  --tl-bg-2:#a9d39a;
+  --tl-surface:#fbf6ec;            /* 패널 바탕 */
+  --tl-surface-2:#f1e7d3;
+  --tl-ink:#2a2620;                /* 본문 글자 */
+  --tl-ink-soft:#6b6152;
+  --tl-line:rgba(37,59,53,.14);
+  --tl-ok:#2f8a5b;
+  --tl-bad:#c4523c;
+
+  /* 신규 6등급 배지 바탕 (흰 글자 대비 4.5:1 이상 — renewal/audit/TALELIA_GRADE_COLOR_PALETTE.md 승인안) */
+  --tl-tier-common:#5E6B80;                                   /* 5.40 */
+  --tl-tier-rare:#1E66D0;                                     /* 5.43 */
+  --tl-tier-hero:#6F55A6;                                     /* 5.96 */
+  --tl-tier-legendary:#8A6A2E;  --tl-tier-legendary-2:#9A5410;/* 5.02 / 5.75 */
+  --tl-tier-mythic:#B0306A;     --tl-tier-mythic-2:#8E2B6E;   /* 6.04 / 7.72 */
+  --tl-tier-primordial:#A0306A; --tl-tier-primordial-2:#5B3FB0;
+  --tl-tier-primordial-3:#1D5FA0; --tl-tier-primordial-4:#17775A; /* 6.72 / 7.55 / 6.57 / 5.49 */
+  /* 특성 배지 바탕 */
+  --tl-trait-mutant:#0E7C69;    /* 5.11 */
+  --tl-trait-boss:#26334D;      /* 12.63 · Royal Navy + 금 테두리 */
+  --tl-trait-farm:#253B35;      /* 11.96 · Forest Green */
+  /* 이펙트 전용 (프레임·오라·그라데이션 장식 — 글자에 쓰지 않음) */
+  --tl-fx-hero:var(--tl-violet);
+  --tl-fx-legendary:var(--tl-gold);
+  --tl-fx-mythic-a:var(--tl-coral); --tl-fx-mythic-b:var(--tl-violet);
+  --tl-fx-mutant:#0FB59A;
+
+  /* 모양 */
+  --tl-r-sm:10px; --tl-r:16px; --tl-r-lg:24px; --tl-r-pill:999px;
+  --tl-shadow:0 6px 18px rgba(37,59,53,.18), 0 1px 0 rgba(255,255,255,.6) inset;
+  --tl-shadow-lg:0 16px 40px rgba(20,30,28,.28);
+
+  /* 글꼴 */
+  --tl-font:'Noto Sans KR',system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif;
+  --tl-font-display:'Jua','Noto Sans KR',sans-serif;
+
+  /* 여백 · 안전 영역 */
+  --tl-gutter:16px;
+  --tl-safe-top:env(safe-area-inset-top,0px);
+  --tl-safe-bottom:env(safe-area-inset-bottom,0px);
+  --tl-hud-h:60px;
+  --tl-nav-h:66px;
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#253B35">
+<title data-dev-title="TALELIA 전투 프로토타입">TALELIA · 전투</title>
+<script src="js/devmode.js?v=ec223e365bf9"></script>
+<!-- 턴제 전투 규칙 검증용 프로토타입 (그림 · 연출 최소)
+     · 규칙 = js/battle/rules.js · 자동 행동 = js/battle/ai.js · 화면 = js/battle/view.js · 수치(모두 임시값) = data/battle-proto.js
+     · 로그인 · 서버 호출 · 저장 없음. 이 폴더 안 파일만 읽습니다. 마을 화면(town.html)과 기존 게임 엔진은 건드리지 않습니다.
+     · 주소 옵션: ?mode=pvp · ?seed=7 · ?auto=1 · ?speed=0|1|2|step
+       필살기 영상: ?ultvideo=0|1 · ?ultvideorate=4 (시험용 배속) · ?ultvideosrc=경로 · ?ultvideodelay=ms (js/battle/view.js 머리말)
+       이야기에서 온 전투: ?encounter=lab_guard_tutorial&return=story.html%3Fscene%3Dprologue_03 (구성 = data/battle-proto.js encounters · 끝나면 결과를 붙여 이야기로)
+       던전 전투: ?dungeon=7&run=2026-11-18%23003&savekey=…&return=gacha.html%3Ftab%3Ddungeon (js/dungeon/rules.js · data/dungeon/floors.js · run 이 없으면 미리 보기)
+       뽑기 편성으로 시험 전투: ?party=1&tier=normal&return=gacha.html%3Ftab%3Dparty (js/gacha/trial.js · data/gacha/trial.js · 끝나면 결과를 붙여 편성 탭으로)
+       화면 비교용: ?bg=none (배경 없음 · 단색) · ?bgdim=0~1 (배경 어둡게) · ?shadow=0 (발밑 그림자 끔) · ?outline=1 (캐릭터 외곽 빛) -->
+
+<script>
+  // 시험용: 이 페이지에서 난 오류를 모아 둠 (tests/battle.test.html 이 읽음)
+  window.__battleErrors = [];
+  addEventListener('error', e => window.__battleErrors.push(String(e.message || e)));
+  addEventListener('unhandledrejection', e => window.__battleErrors.push(String(e.reason)));
+  (function(){ const ce = console.error; console.error = function(){ window.__battleErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
+</script>
+<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/battle.css?v=ec223e365bf9">
+</head>
+<body>
+<main id="battle" class="bt">
+  <!-- 전장: 16:9 · 창 크기에 맞춰 늘어남 · 배경 그림(없으면 단색) 위에 캐릭터가 바닥선에 섬 · 위/아래 표시는 전장 위에 겹침 -->
+  <section class="bt-field" aria-label="전장">
+    <div class="bt-bg" aria-hidden="true"></div>
+    <div class="bt-units"></div>
+
+    <header class="bt-hud bt-hud--top">
+      <div id="btRound" class="bt-round"></div>
+      <ol id="btQueue" class="bt-queue" aria-label="이번 라운드 남은 행동 순서"></ol>
+      <span class="bt-temp" title="수치 · 일부 규칙이 확정되지 않았습니다" data-dev-only>임시값</span>
+      <button type="button" id="btVideoToggle" class="bt-hud-btn" aria-pressed="true" title="24호 필살기 영상 켜기 · 끄기 (이 기기에 기억)">필살기 영상 ON</button>
+      <button type="button" id="btLogToggle" class="bt-hud-btn" aria-controls="btLogBox" aria-expanded="false">로그 ▸</button>
+    </header>
+
+    <div class="bt-hud bt-hud--bottom">
+      <div id="btTurn" class="bt-turn"></div>
+      <div class="bt-actions"><div id="btSkills" class="bt-skills"></div><button type="button" id="btStep" class="bt-btn bt-step" hidden>다음 행동 ▶</button></div>
+      <button type="button" id="btAuto" class="bt-btn bt-auto">자동 전투 OFF</button>
+    </div>
+
+    <aside id="btLogBox" class="bt-logbox" aria-label="전투 로그">
+      <h2>전투 로그 <small data-dev-only>적용된 보정(후열 · 전열 · 강화)을 항상 표시</small></h2>
+      <ol id="btLog" class="bt-log"></ol>
+    </aside>
+    <div id="btResult" class="bt-result" hidden></div>
+  </section>
+
+  <!-- 전장 아래 도구 줄 -->
+  <section class="bt-toolbar" data-dev-only>
+    <span class="bt-seg"><button type="button" class="bt-btn" data-mode="pve">PVE</button><button type="button" class="bt-btn" data-mode="pvp">PVP</button></span>
+    <label class="bt-seed">시드 <input id="btSeed" type="number" min="1" step="1" value="1"></label>
+    <button type="button" id="btRestart" class="bt-btn">재시작</button>
+    <span class="bt-seg" title="자동 행동 속도"><button type="button" class="bt-btn" data-speed="step">한 단계</button><button type="button" class="bt-btn" data-speed="1">×1</button><button type="button" class="bt-btn" data-speed="2">×2</button><button type="button" class="bt-btn" data-speed="0">즉시</button></span>
+    <div id="btAutos" class="bt-autos"></div>
+  </section>
+</main>
+<script src="data/battle-proto.js?v=ec223e365bf9"></script>
+<script src="js/battle/rules.js?v=ec223e365bf9"></script>
+<script src="js/battle/ai.js?v=ec223e365bf9"></script>
+<script src="data/rigs/subject_24.js?v=ec223e365bf9"></script>
+<script src="data/rigs/subject_24_small.js?v=ec223e365bf9"></script>
+<script src="js/battle/rig.js?v=ec223e365bf9"></script>
+<script src="js/battle/rig-stage.js?v=ec223e365bf9"></script>
+<!-- 뽑기 편성으로 시험 전투 (?party=1 일 때만 씀 · 뽑기 저장은 읽기만) : 뽑기 데이터 · 규칙 · 시험 전투 상대 · 변환 · 뽑기 캐릭터 리그 데이터(그림은 쓸 때만 불러옴) -->
+<script src="data/gacha/species.js?v=ec223e365bf9"></script>
+<script src="js/gacha/rules.js?v=ec223e365bf9"></script>
+<script src="js/gacha/passive.js?v=ec223e365bf9"></script>
+<script src="js/gacha/story-growth.js?v=ec223e365bf9"></script>
+<script src="data/gacha/equipment.js?v=ec223e365bf9"></script>
+<script src="js/gacha/gear.js?v=ec223e365bf9"></script>
+<script src="data/gacha/trial.js?v=ec223e365bf9"></script>
+<script src="js/gacha/trial.js?v=ec223e365bf9"></script>
+<!-- 던전 전투 (?dungeon=층 · E4 · 뽑기 저장은 읽기만) : 층 데이터 · 던전 규칙 -->
+<script src="data/dungeon/floors.js?v=ec223e365bf9"></script>
+<script src="js/dungeon/rules.js?v=ec223e365bf9"></script>
+<script src="data/stage/chapter1.js?v=ec223e365bf9"></script>
+<script src="js/stage/rules.js?v=ec223e365bf9"></script>
+<script src="js/battle/fx-kit.js?v=ec223e365bf9"></script>
+<script src="data/rigs/_kit.js?v=ec223e365bf9"></script>
+<script src="data/rigs/farmer_rabbit.js?v=ec223e365bf9"></script>
+<script src="data/rigs/squirrel_slinger.js?v=ec223e365bf9"></script>
+<script src="data/rigs/mole_miner.js?v=ec223e365bf9"></script>
+<script src="data/rigs/duck_healer.js?v=ec223e365bf9"></script>
+<script src="data/rigs/turtle_guard.js?v=ec223e365bf9"></script>
+<script src="data/rigs/fox_mage.js?v=ec223e365bf9"></script>
+<script src="data/rigs/owl_sage.js?v=ec223e365bf9"></script>
+<script src="data/rigs/moon_rabbit.js?v=ec223e365bf9"></script>
+<script src="data/names.js?v=ec223e365bf9"></script>
+<script src="js/names.js?v=ec223e365bf9"></script>
+<script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
+<script>(function(){ var b = document.getElementById("btVideoToggle"), N = window.TaleliaNames; if(b && N){ var s = N.readSave(new URLSearchParams(location.search).get("savekey") || undefined); b.title = N.nameOf("s24", s, "call") + " 필살기 영상 켜기 · 끄기 (이 기기에 기억)"; } })();</script>
+<script src="js/battle/view.js?v=ec223e365bf9"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+/* TALELIA · village.css — 아이소메트릭 마을 */
+.tl-map{width:min(100%,1100px);height:100%;max-height:100%;overflow:visible}
+.tl-tile{stroke:rgba(37,59,53,.16);stroke-width:1;transition:filter .15s}
+.tl-tile.is-alt{filter:brightness(.96)}
+.tl-map__cliff{fill:#8a6a45}
+.tl-map__cliff.is-right{fill:#6f5436}
+
+.tl-obj{cursor:pointer}
+.tl-obj__shadow{fill:rgba(20,30,25,.22)}
+.tl-obj__badge{stroke:#fff;stroke-width:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.tl-obj__badge[class*="is-tier-"]{fill:var(--c)}   /* 신규 6등급 색 (components.css 의 .is-tier-* 가 --c 지정) */
+.tl-obj__letter{fill:#fff;font-family:var(--tl-font-display);text-anchor:middle;pointer-events:none}
+.tl-obj__emoji{text-anchor:middle;dominant-baseline:auto;pointer-events:none}
+.tl-obj image{pointer-events:auto}
+.tl-obj:hover .tl-obj__body{filter:drop-shadow(0 0 4px rgba(255,240,200,.9))}
+
+.tl-empty{margin:auto;max-width:340px;padding:24px;text-align:center;color:var(--tl-forest);background:rgba(251,246,236,.9);
+  border-radius:var(--tl-r);box-shadow:var(--tl-shadow);display:flex;flex-direction:column;gap:10px;align-items:center}
+.tl-empty p{color:var(--tl-ink-soft);font-size:14px}
+
+/* 확대/축소 버튼 */
+.tl-zoom{position:absolute;z-index:20;right:10px;bottom:calc(var(--tl-nav-h) + var(--tl-safe-bottom) + 12px);display:flex;flex-direction:column;gap:6px}
+body:not([data-tab="village"]) .tl-zoom{display:none}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a2238">
+<title data-dev-title="TALELIA 스테이지 (프로토타입)">TALELIA · 스테이지</title>
+<script src="js/devmode.js?v=ec223e365bf9"></script>
+<!-- 스테이지 (S4 · docs/design/stage-system.md): 1장 지도 · 스테이지 시트 · 입장(story.html 전후 대사 → battle.html?stage=) · 돌아온 결과를 runId 로 한 번만 반영 · 안내 ② ③
+     · 규칙 = js/stage/rules.js · 데이터 = data/stage/chapter1.js · 저장 = 뽑기 저장 v4 의 stage (js/gacha/store.js · 이 브라우저에만 · 서버 연결 없음) · 화면 = js/stage/ui.js
+     · 주소 옵션: ?savekey=이름 (다른 저장 키 · 시험용) · ?now=2026-11-22T12:00:00 (시험용 시계)
+     · 돌아오는 주소: ?stage=1-1&run=runId&result=win|lose|draw|error (story.html · battle.html 에서) -->
+<script>
+  window.__stageErrors = [];
+  addEventListener('error', e => window.__stageErrors.push(String(e.message || e)));
+  addEventListener('unhandledrejection', e => window.__stageErrors.push(String(e.reason)));
+  (function(){ const ce = console.error; console.error = function(){ window.__stageErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
+</script>
+<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/gacha.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/topbar.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/stage.css?v=ec223e365bf9">
+</head>
+<body class="sg-body">
+<div id="stage" class="sg">
+  <header class="sg-top">
+    <a id="sgTown" class="tl-back" data-town href="town.html">← 마을</a>
+    <h1 class="sg-title" id="sgTitle">스테이지</h1>
+    <div class="sg-wallet" aria-label="보유 재화">
+      <span class="gc-coin" title="정령석"><span aria-hidden="true">💠</span><b id="sgStones">0</b></span>
+      <span class="gc-coin gc-coin--gold" title="골드"><img class="gc-ico" src="images/items/icon_gold.webp" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'gc-coin__txt',textContent:'골드'}))"><b id="sgGold">0</b></span>
+    </div>
+  </header>
+
+  <div id="sgNotice" class="sg-notice" role="status" aria-live="polite" hidden>
+    <p id="sgNoticeText"></p>
+    <p id="sgNoticeSub" class="sg-notice__sub" hidden></p>
+    <div id="sgNoticeActs" class="sg-notice__acts"></div>
+  </div>
+
+  <ul id="sgOpen" class="sg-open" aria-label="끝나지 않은 전투" hidden></ul>
+
+  <main class="sg-main">
+    <section class="sg-map" aria-label="1장 지도">
+      <ol id="sgNodes" class="sg-nodes"></ol>
+    </section>
+
+    <section id="sgSheet" class="sg-sheet gc-paper" aria-label="스테이지 정보" aria-live="polite">
+      <header class="sg-sheet__head"><b id="sgShNo"></b><h2 id="sgShTitle"></h2><span id="sgShState" class="sg-state"></span></header>
+      <p id="sgShPlace" class="sg-sheet__place"></p>
+      <ul id="sgShEnemies" class="sg-enemies" aria-label="나오는 적"></ul>
+      <dl class="sg-dl">
+        <dt>적 전투력</dt><dd id="sgShEnemyPower"></dd>
+        <dt>내 편성</dt><dd id="sgShMyPower"></dd>
+        <dt>첫 클리어 보상</dt><dd id="sgShReward"></dd>
+      </dl>
+      <p class="sg-hint">스토리 전투에는 장비 효과가 적용되지 않아요.</p>
+      <div id="sgBar" class="sg-bar">
+      <div class="sg-sheet__acts">
+        <button type="button" class="gc-btn gc-btn--primary" id="sgEnter">입장</button>
+        <button type="button" class="gc-btn" id="sgSkip" hidden>대사 건너뛰고 전투</button>
+        <button type="button" class="gc-btn gc-btn--small" id="sgParty">편성 바꾸기</button>
+      </div>
+      <p id="sgWhy" class="sg-why" role="note"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="sgGuide" class="sg-guide" role="dialog" aria-modal="true" aria-labelledby="sgGuideTitle" hidden>
+    <div class="sg-guide__box gc-paper">
+      <h2 id="sgGuideTitle"></h2>
+      <div id="sgGuideBody"></div>
+      <div id="sgGuideActs" class="sg-guide__acts"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/topbar.js?v=ec223e365bf9"></script>
+<script src="data/gacha/species.js?v=ec223e365bf9"></script>
+<script src="js/gacha/rules.js?v=ec223e365bf9"></script>
+<script src="js/gacha/store.js?v=ec223e365bf9"></script>
+<script src="data/stage/chapter1.js?v=ec223e365bf9"></script>
+<script src="js/stage/rules.js?v=ec223e365bf9"></script>
+<script src="js/stage/reward-fix.js?v=ec223e365bf9"></script>
+<script src="data/names.js?v=ec223e365bf9"></script>
+<script src="js/names.js?v=ec223e365bf9"></script>
+<script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
+<script src="js/stage/ui.js?v=ec223e365bf9"></script>
+</body>
+</html>

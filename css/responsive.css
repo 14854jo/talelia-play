@@ -1,0 +1,14 @@
+/* TALELIA · responsive.css — 모바일 우선, 넓은 화면 보정 */
+@media (max-width:380px){
+  .tl-res.is-pending{display:none}
+  .tl-hud__profile{max-width:40vw}
+  .tl-logo h1{font-size:36px}
+}
+@media (min-width:768px){
+  :root{--tl-hud-h:68px}
+  .tl-panel-layer{left:50%;right:auto;width:min(560px,92vw);transform:translateX(-50%);border-radius:var(--tl-r-lg);bottom:calc(var(--tl-nav-h) + 16px)}
+  .tl-nav{left:50%;right:auto;width:min(520px,92vw);transform:translateX(-50%);bottom:12px;border-radius:var(--tl-r-lg);
+    border:2px solid rgba(215,183,121,.55);height:var(--tl-nav-h);padding:6px 8px}
+  .tl-zoom{bottom:24px}
+  .tl-sheet{border-radius:var(--tl-r-lg);margin-bottom:16px}
+}

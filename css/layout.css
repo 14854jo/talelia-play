@@ -1,0 +1,41 @@
+/* TALELIA · layout.css — 화면 뼈대 (마을이 화면 대부분을 차지) */
+body{font-family:var(--tl-font);color:var(--tl-ink);background:var(--tl-forest);font-size:15px;line-height:1.5}
+
+/* 시작 · 설정 · 로그인 화면 */
+.tl-splash{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  padding:calc(var(--tl-safe-top) + 24px) var(--tl-gutter) calc(var(--tl-safe-bottom) + 24px);
+  background:radial-gradient(120% 80% at 50% 0%,#3a5b4f 0%,var(--tl-forest) 60%,#18261f 100%);color:var(--tl-cream);text-align:center}
+.tl-logo{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tl-logo__mark{font-size:52px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+.tl-logo h1{font-family:var(--tl-font-display);font-weight:400;font-size:44px;letter-spacing:.08em;color:var(--tl-gold);
+  text-shadow:0 3px 0 #8d6f3c,0 8px 20px rgba(0,0,0,.35)}
+.tl-logo p{font-size:14px;letter-spacing:.12em;color:var(--tl-cream);opacity:.85}
+
+/* 게임 화면 */
+.tl-game{position:fixed;inset:0;overflow:hidden;background:linear-gradient(180deg,#bfe0f0 0%,#d9eedf 38%,var(--tl-bg) 100%)}
+.tl-stage{position:absolute;inset:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(var(--tl-safe-top) + var(--tl-hud-h)) 0 calc(var(--tl-safe-bottom) + var(--tl-nav-h))}
+.tl-stage:active{cursor:grabbing}
+
+/* 상단 HUD — 얇게, 마을을 가리지 않게 */
+.tl-hud{position:absolute;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:8px;
+  padding:calc(var(--tl-safe-top) + 8px) 10px 8px;pointer-events:none}
+.tl-hud > *{pointer-events:auto}
+.tl-hud__res{display:flex;gap:6px;flex:1;min-width:0;justify-content:center;flex-wrap:nowrap;overflow:hidden}
+.tl-hud__tools{display:flex;gap:6px;align-items:center}
+
+/* 하단 메뉴 */
+.tl-nav{position:absolute;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);
+  height:calc(var(--tl-nav-h) + var(--tl-safe-bottom));padding:6px 8px calc(var(--tl-safe-bottom) + 6px);
+  background:linear-gradient(180deg,rgba(37,59,53,.92),rgba(24,38,31,.97));border-top:2px solid rgba(215,183,121,.55);
+  box-shadow:0 -8px 24px rgba(0,0,0,.18)}
+
+/* 탭 패널 — 마을 위에 떠오름 */
+.tl-panel-layer{position:absolute;z-index:25;left:0;right:0;bottom:calc(var(--tl-nav-h) + var(--tl-safe-bottom));
+  max-height:calc(100dvh - var(--tl-nav-h) - var(--tl-safe-bottom) - var(--tl-safe-top) - var(--tl-hud-h) - 8px);
+  overflow:auto;background:var(--tl-surface);border-radius:var(--tl-r-lg) var(--tl-r-lg) 0 0;box-shadow:var(--tl-shadow-lg);
+  padding:0 var(--tl-gutter) 18px;border-top:3px solid var(--tl-gold)}
+.tl-panel-layer__head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:14px 0 10px;background:var(--tl-surface)}
+.tl-panel-layer__head h2{flex:1;font-family:var(--tl-font-display);font-weight:400;font-size:22px;color:var(--tl-forest)}
+.tl-panel-layer__head small{font-family:var(--tl-font);font-size:13px;color:var(--tl-ink-soft)}

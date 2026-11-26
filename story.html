@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#253B35">
+<title data-dev-title="TALELIA 대화 장면 프로토타입">TALELIA · 이야기</title>
+<script src="js/devmode.js?v=ec223e365bf9"></script>
+<!-- 스토리 대화 장면 1단계 (대본 읽기 · 대화창 · 표정 그림 무대)
+     · 대본 읽기 = js/story/parser.js · 무대 = js/story/stage.js · 대화창 = js/story/dialog.js · 진행 = js/story/player.js
+     · 등장인물 · 표정 · 배경 표 = data/story/cast.js · 대본 = data/story/scenes/*.js
+     · 로그인 · 서버 호출 · 저장 없음 (글자 속도만 이 기기에 기억). 이 폴더 안 파일만 읽습니다.
+       마을(town.html) · 전투(battle.html) 파일과 전투 규칙 코드는 건드리지 않습니다. 컷은 그림 또는 자리표시 카드 · 전투는 cast.js battles 표에 있으면 battle.html 로 다녀옴 (없으면 자리표시 카드).
+     · 장면 목록 첫 장면 = prologue_01 (프롤로그 → 예시 대본 순). 다른 장면은 아래 도구 줄에서 고름
+     · 주소 옵션: ?scene=demo_lab · ?tone=lab|base · ?auto=1 · ?text=instant · ?motion=reduce|full -->
+
+<script>
+  // 시험용: 이 페이지에서 난 오류를 모아 둠 (tests/story.test.html 이 읽음)
+  window.__storyErrors = [];
+  addEventListener('error', e => window.__storyErrors.push(String(e.message || e)));
+  addEventListener('unhandledrejection', e => window.__storyErrors.push(String(e.reason)));
+  (function(){ const ce = console.error; console.error = function(){ window.__storyErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
+</script>
+<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/story.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/topbar.css?v=ec223e365bf9">
+</head>
+<body>
+<main class="st-page">
+  <!-- 마을로 (H4): 스테이지 진행 중(?run=)이면 묻고 감 · 진행 중인 판은 저장에 남아 스테이지 화면에서 이어서 할 수 있음 -->
+  <a id="stTown" class="tl-back tl-back--float" data-town data-confirm-if="run" data-confirm="대사를 그만두고 마을로 갈까요? 진행 중인 스테이지는 스테이지 화면의 [이어서 하기]로 남아요." href="town.html">← 마을</a>
+  <!-- 무대: 넓은 화면 = 16:9 · 세로 화면 = 화면 가득. 배경 → 캐릭터 → 대화창 → 로그 · 카드 순으로 겹침 -->
+  <section id="story" class="st" data-tone="base" tabindex="0" aria-label="대화 장면. 클릭하거나 Space · Enter 로 넘깁니다. A 자동 진행, L 지난 대사.">
+    <div class="st-bg" aria-hidden="true"></div>
+    <div class="st-cast" aria-hidden="true"></div>
+
+    <div class="st-box">
+      <div class="st-plate" hidden></div>
+      <div class="st-ctrl">
+        <button type="button" id="stAuto" class="st-cbtn" aria-pressed="false" title="자동 진행 (A)">자동</button>
+        <button type="button" id="stSkip" class="st-cbtn" title="다음 전투 · 컷 · 장면 끝까지 건너뛰기">건너뛰기</button>
+        <button type="button" id="stLogBtn" class="st-cbtn" aria-controls="stLog" aria-expanded="false" title="지난 대사 (L)">로그</button>
+        <button type="button" id="stSpeed" class="st-cbtn" title="글자 · 자동 진행 속도">속도 보통</button>
+      </div>
+      <p class="st-text" aria-hidden="true"></p>
+      <span class="st-next" aria-hidden="true" hidden>▼</span>
+    </div>
+    <p class="st-live" aria-live="polite"></p>
+
+    <aside id="stLog" class="st-log" aria-label="지난 대사" hidden>
+      <div class="st-log__panel">
+        <header><h2>지난 대사</h2><button type="button" id="stLogClose" class="st-cbtn">닫기 (Esc)</button></header>
+        <ol></ol>
+      </div>
+    </aside>
+    <div class="st-card" hidden></div>
+  </section>
+
+  <!-- 무대 아래 도구 줄 (프로토타입 확인용) -->
+  <section class="st-tools" data-dev-only>
+    <label>장면 <select id="stScene"></select></label>
+    <label>톤 <select id="stTone"><option value="">대본대로</option><option value="base">기본(양피지)</option><option value="lab">연구소</option></select></label>
+    <button type="button" id="stRestart" class="st-tbtn">다시 시작</button>
+    <button type="button" id="stWarnBtn" class="st-tbtn" aria-controls="stWarnList">대본 경고 0</button>
+    <pre id="stWarnList" class="st-warn" hidden></pre>
+  </section>
+</main>
+<script src="js/topbar.js?v=ec223e365bf9"></script>
+<script src="data/story/cast.js?v=ec223e365bf9"></script>
+<script src="data/story/scenes/prologue.js?v=ec223e365bf9"></script>
+<script src="data/story/scenes/chapter1.js?v=ec223e365bf9"></script>
+<script src="data/story/scenes/demo.js?v=ec223e365bf9"></script>
+<script src="js/story/parser.js?v=ec223e365bf9"></script>
+<script src="js/story/stage.js?v=ec223e365bf9"></script>
+<script src="js/story/dialog.js?v=ec223e365bf9"></script>
+<script src="js/story/fx.js?v=ec223e365bf9"></script>
+<script src="data/names.js?v=ec223e365bf9"></script>
+<script src="js/names.js?v=ec223e365bf9"></script>
+<script src="js/story/progress.js?v=ec223e365bf9"></script>
+<script src="js/story/player.js?v=ec223e365bf9"></script>
+</body>
+</html>

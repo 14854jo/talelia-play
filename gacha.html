@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a2238">
+<title data-dev-title="TALELIA 정령 소환 (프로토타입)">TALELIA · 정령 소환</title>
+<script src="js/devmode.js?v=ec223e365bf9"></script>
+<!-- 뽑기 · 수집: 소환 화면 · 소환 연출(영상 → 컷인 → 카드) · 보관함 · 캐릭터 상세(강화 · 승급 · 초월) · 편성 · 도감
+     · 상세 · 편성 = js/gacha/manage.js (리그가 있는 캐릭터는 상세에서 대기 동작 · 재생기 js/battle/rig.js 를 읽기만 함)
+     · 규칙 = js/gacha/rules.js · 저장 = js/gacha/store.js (이 브라우저에만 · 서버 · Supabase 연결 없음) · 화면 = js/gacha/ui.js · 데이터 = data/gacha/species.js
+     · 원본 게임 서버의 소환과 연결하지 않는 별도 로컬 프로토타입. 마을 · 이야기 · 전투 파일은 건드리지 않습니다.
+     · 주소 옵션: ?dev=1 (개발용: 정령석 · 별의 조각 지급 · 초기화 · 내보내기/가져오기) · ?seed=7 (뽑기 결과 고정) · ?motion=reduce|full
+                 ?savekey=이름 (다른 저장 키 · 시험용) · ?videorate=4 (소환 영상 배속 · 시험용) · ?videosrc=경로 (영상 실패 시험용) · ?cutinscale=0.2 (컷인 시간 배율 · 시험용) -->
+<script>
+  window.__gachaErrors = [];
+  addEventListener('error', e => window.__gachaErrors.push(String(e.message || e)));
+  addEventListener('unhandledrejection', e => window.__gachaErrors.push(String(e.reason)));
+  (function(){ const ce = console.error; console.error = function(){ window.__gachaErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
+</script>
+<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/gacha.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/topbar.css?v=ec223e365bf9">
+</head>
+<body>
+<div id="gacha" class="gc">
+  <header class="gc-top">
+    <a id="gcTown" class="tl-back" data-town href="town.html">← 마을</a>
+    <a id="gcStageBack" class="tl-back gc-stageback" href="stage.html" hidden>스테이지로 →</a>
+    <h1 class="gc-title">정령 소환</h1>
+    <nav class="gc-tabs" role="tablist" aria-label="소환 메뉴">
+      <button type="button" role="tab" id="tabPull" aria-controls="panelPull" aria-selected="true">소환</button>
+      <button type="button" role="tab" id="tabBox" aria-controls="panelBox" aria-selected="false">보관함</button>
+      <button type="button" role="tab" id="tabParty" aria-controls="panelParty" aria-selected="false">편성</button>
+      <button type="button" role="tab" id="tabGear" aria-controls="panelGear" aria-selected="false">장비</button>
+      <button type="button" role="tab" id="tabDungeon" aria-controls="panelDungeon" aria-selected="false">던전</button>
+      <button type="button" role="tab" id="tabDex"aria-controls="panelDex" aria-selected="false">도감</button>
+    </nav>
+    <span class="gc-coin" id="gcTstoneChip" title="초월석 (스토리 캐릭터 승급 · 초월 재료)" hidden><i class="gc-coin__txt">초월석</i><b>0</b></span>
+    <div class="gc-wallet" aria-label="보유 재화">
+      <span class="gc-coin" title="정령석 (소환 재화)"><img class="gc-ico" data-ico="stone" alt="정령석"><b data-v="stones">0</b></span>
+      <span class="gc-coin" title="별의 조각 (같은 성급 강화 재료 대신)"><img class="gc-ico" data-ico="shard" alt="별의 조각"><b data-v="shards">0</b></span>
+      <span class="gc-coin gc-coin--gold" title="골드 (장비 강화에 씀 · 장비를 분해하면 받음)"><img class="gc-ico" src="images/items/icon_gold.webp" alt="골드" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'gc-coin__txt',textContent:'골드'}))"><b data-v="gold">0</b></span>
+    </div>
+  </header>
+  <p id="gcNotice" class="gc-notice" role="status" hidden></p>
+
+  <!-- 소환 -->
+  <section id="panelPull" class="gc-panel gc-scene" role="tabpanel" aria-labelledby="tabPull">
+    <div class="gc-scene__bg" aria-hidden="true">
+      <!-- 배경(원형 제단) 위에 픽업 캐릭터 · 위치는 배경 그림 기준 % -->
+      <div class="gc-hero"><img id="gcHeroArt" alt=""></div>
+    </div>
+    <div class="gc-hero-plate gc-paper" id="gcHeroPlate">
+      <span class="gc-hero-plate__rar" id="gcHeroRar"></span>
+      <b class="gc-hero-plate__name" id="gcHeroName"></b>
+      <span class="gc-hero-plate__stars" id="gcHeroStars"></span>
+      <div class="gc-hero-plate__pick" id="gcHeroPick" role="group" aria-label="픽업 캐릭터 바꿔 보기"></div>
+    </div>
+
+    <aside class="gc-banners gc-paper" aria-label="소환 종류">
+      <h2 class="gc-banners__title">소환 목록</h2>
+      <div id="gcBannerList" class="gc-banners__list" role="radiogroup" aria-label="소환 종류 고르기"></div>
+    </aside>
+
+    <div class="gc-dock gc-paper">
+      <div class="gc-dock__info">
+        <p class="gc-dock__name" id="gcBannerName"></p>
+        <div class="gc-pity">
+          <div class="gc-pity__head"><span>전설 이상 확정까지</span><b id="gcPityLeft">50회</b></div>
+          <div class="gc-pity__bar" role="progressbar" aria-label="천장 진행" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0"><i id="gcPityBar"></i></div>
+        </div>
+        <p class="gc-hint">10회 뽑기마다 <b>영웅 이상 1개</b> 보장 · <button type="button" id="gcRatesBtn" class="gc-link">확률 보기</button></p>
+      </div>
+      <div class="gc-dock__wallet" aria-label="보유 재화">
+        <span class="gc-coin" title="정령석 (소환 재화)"><img class="gc-ico" data-ico="stone" alt="정령석"><b id="gcStones" data-v="stones">0</b></span>
+        <span class="gc-coin" title="별의 조각 (같은 성급 강화 재료 대신)"><img class="gc-ico" data-ico="shard" alt="별의 조각"><b id="gcShards" data-v="shards">0</b></span>
+      </div>
+      <div class="gc-dock__btns">
+        <button type="button" id="gcPull1" class="gc-btn gc-btn--one"><span>1회 소환</span><small><img class="gc-ico" data-ico="stone" alt="정령석"> <b data-cost="single">150</b></small></button>
+        <button type="button" id="gcPull10" class="gc-btn gc-btn--ten"><span>10회 소환</span><small><img class="gc-ico" data-ico="stone" alt="정령석"> <b data-cost="ten">1,500</b></small></button>
+      </div>
+      <p id="gcPullMsg" class="gc-msg" role="status"></p>
+    </div>
+  </section>
+
+  <!-- 보관함 -->
+  <section id="panelBox" class="gc-panel gc-page" role="tabpanel" aria-labelledby="tabBox" hidden>
+    <div class="gc-bar">
+      <div id="gcFilter" class="gc-filter" role="group" aria-label="등급 걸러 보기"></div>
+      <label class="gc-sort">정렬 <select id="gcSort"><option value="rarity">등급순</option><option value="recent">최근 얻은 순</option><option value="name">이름순</option></select></label>
+    </div>
+    <p id="gcBoxCount" class="gc-count"></p>
+    <div id="gcBox" class="gc-grid"></div>
+  </section>
+
+  <!-- 편성: 전열 3 · 후열 3 (오른쪽을 보고 싸우므로 전열이 오른쪽) -->
+  <section id="panelParty" class="gc-panel gc-page" role="tabpanel" aria-labelledby="tabParty" hidden>
+    <div class="gc-party">
+      <div class="gc-party__head">
+        <h2 class="gc-party__title">편성 <small id="gcPartyCount">0 / 6</small></h2>
+        <p class="gc-party__power">전투력 합계 <b id="gcPartyPower">0</b></p>
+        <button type="button" class="gc-btn gc-btn--small gc-btn--primary" id="gcPartyAuto" title="24호와 전투력이 높은 서로 다른 동료로 6칸을 채워요">자동 편성</button>
+        <button type="button" class="gc-btn gc-btn--small" id="gcPartyClear">모두 빼기</button>
+      </div>
+      <div class="gc-formation" id="gcFormation">
+        <div class="gc-formation__row" data-row="back"><h3>후열</h3><div class="gc-formation__slots"></div></div>
+        <div class="gc-formation__row" data-row="front"><h3>전열</h3><div class="gc-formation__slots"></div></div>
+      </div>
+      <p class="gc-hint gc-party__hint" id="gcPartyHint">칸을 고른 뒤 아래 캐릭터를 누르면 넣어요 · 캐릭터만 누르면 추천 줄(전열 · 후열)의 빈칸에 들어가요 · 칸의 ✕ 로 빼요</p>
+      <!-- 시험 전투: battle.html?party=1 (보상 없음 · 저장은 바뀌지 않음) · 전투에서는 1 · 2 · 3번 칸이 위 · 가운데 · 아래 줄 -->
+      <div class="gc-trial" id="gcTrial">
+        <div class="gc-trial__text"><b>시험 전투</b><span>이 편성으로 연습 전투를 해요 (보상 없음) · 전투에서는 1 · 2 · 3번 칸이 위 · 가운데 · 아래 줄이 돼요</span></div>
+        <div id="gcTrialTier" class="gc-filter" role="group" aria-label="시험 전투 난이도"></div>
+        <button type="button" class="gc-btn gc-btn--primary gc-btn--small" id="gcTrialGo">이 편성으로 시험 전투</button>
+      </div>
+      <div class="gc-bar"><div id="gcPartyFilter" class="gc-filter" role="group" aria-label="줄 추천으로 걸러 보기"></div></div>
+      <div id="gcPartyPool" class="gc-grid gc-grid--pool"></div>
+    </div>
+  </section>
+
+  <!-- 장비 (E5a): 목록 · 걸러 보기 · 정렬 · 장비 시트(강화 · 잠금 · 분해) · 분해 고르기 · js/gacha/gear-ui.js -->
+  <section id="panelGear" class="gc-panel gc-page gc-gearpage" role="tabpanel" aria-labelledby="tabGear" hidden>
+    <div class="gc-bar">
+      <div id="gcGearSlot" class="gc-filter" role="group" aria-label="부위 걸러 보기"></div>
+      <label class="gc-sort">정렬 <select id="gcGearSort"><option value="grade">등급순</option><option value="enh">강화순</option><option value="recent">최근 얻은 순</option><option value="slot">부위순</option></select></label>
+    </div>
+    <div class="gc-bar"><div id="gcGearGrade" class="gc-filter" role="group" aria-label="등급 걸러 보기"></div></div>
+    <p id="gcGearCount" class="gc-count"></p>
+    <div id="gcGearList" class="gc-grid gc-grid--gear"></div>
+    <p id="gcGearEmpty" class="gc-hint gc-gear__empty" hidden>장비가 없어요. 던전에서 얻을 수 있어요 (1장을 끝내면 열려요).</p>
+    <div id="gcGearBar" class="gc-gearbar"></div>
+  </section>
+
+  <!-- 도감 -->
+  <!-- 던전 (E5c): 층 목록 · 입장(battle.html?dungeon=) · 돌아온 결과를 runId 로 한 번만 반영 · 끝나지 않은 전투 이어 보기 · js/gacha/dungeon-ui.js -->
+  <section id="panelDungeon" class="gc-panel gc-page gc-dgpage" role="tabpanel" aria-labelledby="tabDungeon" hidden>
+    <div class="gc-dg gc-paper gc-dglock" id="gcDgLock" hidden>
+      <p><b>🔒 던전은 아직 잠겨 있어요</b></p>
+      <p>1장(스테이지 1-1 ~ 1-6)을 끝내면 열려요. 1-6 을 처음 클리어하면 열립니다.</p>
+      <button type="button" class="gc-btn gc-btn--primary" id="gcDgLockGo">스테이지로 가기</button>
+    </div>
+    <div class="gc-dg gc-paper">
+      <p class="gc-dg__daily" id="gcDgDaily"></p>
+      <div class="gc-dg__party"><span class="gc-dg__dots" id="gcDgDots"></span><span id="gcDgPower"></span><button type="button" class="gc-btn gc-btn--small" id="gcDgParty">편성 바꾸기</button></div>
+    </div>
+    <p id="gcDgNotice" class="gc-dg__notice" role="status" aria-live="polite" hidden><span id="gcDgNoticeText"></span> <button type="button" class="gc-btn gc-btn--small" id="gcDgNoticeGear" hidden>장비 보기</button></p>
+    <ul id="gcDgOpen" class="gc-dg__open" aria-label="끝나지 않은 전투"></ul>
+    <ul id="gcDgFloors" class="gc-dg__floors" role="listbox" aria-label="층 고르기"></ul>
+    <p id="gcDgPity" class="gc-hint gc-dg__pity"></p>
+    <div class="gc-dg__foot">
+      <button type="button" class="gc-btn gc-btn--primary" id="gcDgEnter">입장</button>
+      <p id="gcDgWhy" class="gc-dg__why" role="note"></p>
+    </div>
+  </section>
+
+  <section id="panelDex" class="gc-panel gc-page" role="tabpanel" aria-labelledby="tabDex" hidden>
+    <p id="gcDexCount" class="gc-count"></p>
+    <div id="gcDex" class="gc-grid"></div>
+  </section>
+
+  <!-- 개발용 (?dev=1 일 때만) -->
+  <section id="gcDev" class="gc-dev" hidden>
+    <h2>개발용</h2>
+    <div class="gc-dev__row">
+      <button type="button" class="gc-btn gc-btn--small" data-dev="stones">정령석 +3,000</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="shards">별의 조각 +5</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="tstones">초월석 +50</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="gold">골드 +5,000</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="gear">장비 6개</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="export">내보내기</button>
+      <button type="button" class="gc-btn gc-btn--small" data-dev="import">가져오기</button>
+      <button type="button" class="gc-btn gc-btn--small gc-btn--danger" data-dev="reset">저장 초기화</button>
+    </div>
+    <textarea id="gcDevText" rows="4" aria-label="저장 내용 (내보내기 · 가져오기)"></textarea>
+  </section>
+
+  <!-- 소환 연출: 영상 → 빛 → 컷인 → 결과 카드 -->
+  <div id="gcShow" class="gc-show" role="dialog" aria-modal="true" aria-label="소환 연출" hidden>
+    <div class="gc-show__video"><img class="gc-show__poster" alt=""></div>
+    <div class="gc-show__fx" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="gc-show__flash" aria-hidden="true"></div>
+    <div class="gc-cutin" aria-live="polite">
+      <div class="gc-cutin__glow"></div>
+      <div class="gc-cutin__sparks" aria-hidden="true"></div>
+      <img class="gc-cutin__art" alt="">
+      <div class="gc-cutin__plate"><span class="gc-cutin__rar"></span><b class="gc-cutin__name"></b><span class="gc-cutin__stars"></span><span class="gc-cutin__new">NEW</span></div>
+    </div>
+    <span class="gc-show__skip">눌러서 건너뛰기</span>
+  </div>
+
+  <!-- 결과 카드 -->
+  <div id="gcResult" class="gc-result" role="dialog" aria-modal="true" aria-label="소환 결과" hidden>
+    <div class="gc-result__body"><div id="gcResGrid" class="gc-res"></div></div>
+    <div class="gc-result__foot">
+      <p class="gc-result__note" id="gcResNote" role="status" hidden><span id="gcResNoteText"></span><button type="button" id="gcResAuto" class="gc-btn gc-btn--small" hidden>자동 편성</button></p>
+      <span class="gc-result__hint" id="gcResHint">눌러서 모두 펼치기</span>
+      <div class="gc-result__btns" hidden>
+        <button type="button" id="gcResAgain1" class="gc-btn gc-btn--small">1회 더 <small><img class="gc-ico" data-ico="stone" alt="정령석"> <b data-cost="single">150</b></small></button>
+        <button type="button" id="gcResAgain10" class="gc-btn gc-btn--small">10회 더 <small><img class="gc-ico" data-ico="stone" alt="정령석"> <b data-cost="ten">1,500</b></small></button>
+        <button type="button" id="gcResClose" class="gc-btn gc-btn--small gc-btn--primary">확인</button>
+      </div>
+    </div>
+    <p class="gc-live" id="gcResLive" aria-live="polite"></p>
+  </div>
+
+  <!-- 캐릭터 상세: 무대(리그 대기 동작 · 없으면 카드 그림) · 능력치 · 스킬 · 강화 · 승급 · 초월 -->
+  <div id="gcDetail" class="gc-detail" role="dialog" aria-modal="true" aria-labelledby="gcDtName" hidden>
+    <div class="gc-detail__box">
+      <button type="button" class="gc-detail__close" id="gcDtClose" aria-label="닫기">✕</button>
+      <div class="gc-detail__stage" id="gcDtStage">
+        <canvas id="gcDtCanvas" aria-hidden="true"></canvas>
+        <img id="gcDtArt" alt="">
+        <div class="gc-detail__fx" id="gcDtFx" aria-hidden="true"></div>
+      </div>
+      <div class="gc-detail__info">
+        <header class="gc-detail__head">
+          <span class="gc-detail__rar" id="gcDtRar"></span>
+          <h2 class="gc-detail__name" id="gcDtName"></h2>
+          <div class="gc-detail__meta"><span id="gcDtStars"></span><b id="gcDtEnh"></b><span class="gc-detail__tr" id="gcDtTr"></span></div>
+          <p class="gc-detail__sub" id="gcDtSub"></p>
+          <label class="gc-detail__lock"><input type="checkbox" id="gcDtLock"> 잠금 (재료로 쓰지 않음)</label>
+        </header>
+        <table class="gc-stats" aria-label="능력치"><tbody id="gcDtStats"></tbody></table>
+        <p class="gc-gearset" id="gcDtSet" hidden></p>
+        <div class="gc-gslots" id="gcDtGear" role="group" aria-label="장착한 장비"></div>
+        <div class="gc-skills" id="gcDtSkills"></div>
+        <div class="gc-grow">
+          <div class="gc-grow__tabs" role="tablist" aria-label="성장">
+            <button type="button" role="tab" data-grow="enhance" aria-selected="true">강화</button>
+            <button type="button" role="tab" data-grow="promote" aria-selected="false">승급</button>
+            <button type="button" role="tab" data-grow="transcend" aria-selected="false">초월</button>
+          </div>
+          <p class="gc-grow__desc" id="gcGrowDesc"></p>
+          <div class="gc-grow__pick" id="gcGrowPick" role="listbox" aria-label="재료 고르기"></div>
+          <div class="gc-grow__foot">
+            <p class="gc-grow__sel" id="gcGrowSel" role="status"></p>
+            <button type="button" class="gc-btn gc-btn--primary" id="gcGrowGo" disabled>강화하기</button>
+          </div>
+          <p class="gc-grow__result" id="gcGrowResult" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 재료 확인 (사라지는 캐릭터 · 성공률) -->
+  <div id="gcConfirm" class="gc-sheet" role="dialog" aria-modal="true" aria-labelledby="gcCfTitle" hidden>
+    <div class="gc-sheet__box gc-confirm">
+      <h2 id="gcCfTitle">재료로 쓸까요?</h2>
+      <div id="gcCfBody" class="gc-confirm__body"></div>
+      <div class="gc-confirm__btns"><button type="button" class="gc-btn gc-btn--small" id="gcCfNo">그만두기</button><button type="button" class="gc-btn gc-btn--small gc-btn--primary" id="gcCfYes">쓰기</button></div>
+    </div>
+  </div>
+
+  <!-- 확률표 -->
+  <div id="gcRates" class="gc-sheet" role="dialog" aria-modal="true" aria-labelledby="gcRatesTitle" hidden>
+    <div class="gc-sheet__box">
+      <header><h2 id="gcRatesTitle">소환 확률</h2><button type="button" class="gc-btn gc-btn--small" id="gcRatesClose">닫기</button></header>
+      <table class="gc-rates"><thead><tr><th>등급</th><th>확률</th><th>캐릭터 (한 종류 확률)</th></tr></thead><tbody id="gcRatesBody"></tbody></table>
+      <p class="gc-hint">10회 소환마다 영웅 이상 1개 보장 (10장 모두 영웅 미만이면 마지막 장을 영웅 이상으로) · 50회째 전설 이상 확정 · 스토리 캐릭터는 나오지 않음 · 지금은 모든 소환이 같은 확률</p>
+    </div>
+  </div>
+  <!-- 장비 시트 (E5a) -->
+  <div id="gcGearSheet" class="gc-sheet gc-sheet--gear" role="dialog" aria-modal="true" aria-labelledby="gcGsTitle" hidden>
+    <div class="gc-sheet__box gc-gs"></div>
+  </div>
+  <!-- 장비 고르기 (E5b): 캐릭터 상세의 칸 → 같은 부위 장비 목록 · 장비 시트 → 캐릭터 목록 -->
+  <div id="gcGearPick" class="gc-sheet gc-sheet--gear" role="dialog" aria-modal="true" aria-labelledby="gcPkTitle" hidden>
+    <div class="gc-sheet__box gc-gs gc-pk"></div>
+  </div>
+  <!-- 분해 확인 -->
+  <div id="gcGearConfirm" class="gc-sheet" role="dialog" aria-modal="true" aria-labelledby="gcGcTitle" hidden>
+    <div class="gc-sheet__box gc-confirm">
+      <h2 id="gcGcTitle">분해할까요?</h2>
+      <div id="gcGcBody" class="gc-gc__body"></div>
+      <div class="gc-confirm__btns"><button type="button" class="gc-btn gc-btn--small" id="gcGcNo">그만두기</button><button type="button" class="gc-btn gc-btn--small gc-btn--danger" id="gcGcYes">분해</button></div>
+    </div>
+  </div>
+  <div id="gcToast" class="gc-toast" role="status" hidden></div>
+</div>
+<script src="js/topbar.js?v=ec223e365bf9"></script>
+<script src="data/gacha/species.js?v=ec223e365bf9"></script>
+<script src="data/gacha/equipment.js?v=ec223e365bf9"></script>
+<script src="data/dungeon/floors.js?v=ec223e365bf9"></script>
+<script src="js/gacha/rules.js?v=ec223e365bf9"></script>
+<script src="js/gacha/passive.js?v=ec223e365bf9"></script>
+<script src="js/gacha/story-growth.js?v=ec223e365bf9"></script>
+<script src="js/gacha/store.js?v=ec223e365bf9"></script>
+<script src="js/gacha/gear.js?v=ec223e365bf9"></script>
+<script src="js/dungeon/rules.js?v=ec223e365bf9"></script>
+<script src="data/names.js?v=ec223e365bf9"></script>
+<script src="js/names.js?v=ec223e365bf9"></script>
+<script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
+<script src="js/gacha/ui.js?v=ec223e365bf9"></script>
+<!-- 상세 화면의 대기 동작 (전투 리그 재생기와 리그 데이터를 읽기만 함 · 그림은 상세를 열 때 불러옴) -->
+<script src="js/battle/rig.js?v=ec223e365bf9"></script>
+<script src="js/battle/fx-kit.js?v=ec223e365bf9"></script>   <!-- 리그의 코드로 그리는 층(다람쥐 끈 · 달토끼 궤적)이 씀 -->
+<script src="data/rigs/_kit.js?v=ec223e365bf9"></script>
+<script src="data/rigs/subject_24.js?v=ec223e365bf9"></script>
+<script src="data/rigs/farmer_rabbit.js?v=ec223e365bf9"></script>
+<script src="data/rigs/squirrel_slinger.js?v=ec223e365bf9"></script>
+<script src="data/rigs/mole_miner.js?v=ec223e365bf9"></script>
+<script src="data/rigs/duck_healer.js?v=ec223e365bf9"></script>
+<script src="data/rigs/turtle_guard.js?v=ec223e365bf9"></script>
+<script src="data/rigs/fox_mage.js?v=ec223e365bf9"></script>
+<script src="data/rigs/owl_sage.js?v=ec223e365bf9"></script>
+<script src="data/rigs/moon_rabbit.js?v=ec223e365bf9"></script>
+<script src="data/gacha/trial.js?v=ec223e365bf9"></script>
+<script src="js/gacha/gear-ui.js?v=ec223e365bf9"></script>
+<script src="js/gacha/manage.js?v=ec223e365bf9"></script>
+<script src="data/stage/chapter1.js?v=ec223e365bf9"></script>
+<script src="js/stage/rules.js?v=ec223e365bf9"></script>
+<script src="js/gacha/dungeon-ui.js?v=ec223e365bf9"></script>
+<script src="js/stage/reward-fix.js?v=ec223e365bf9"></script>
+</body>
+</html>

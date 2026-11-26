@@ -1,0 +1,175 @@
+/* =====================================================================
+ * TALELIA · town.css — 2.5D 마을 프로토타입 (town.html 전용)
+ *  기존 화면(index.html)에서는 불러오지 않습니다.
+ * ===================================================================== */
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--tl-font);color:var(--tl-ink);font-size:15px;line-height:1.5;
+  background:radial-gradient(130% 90% at 50% 18%,#d6f0f7 0%,#a9dcec 45%,#7cc4dc 100%)}
+
+.town{position:fixed;inset:0;overflow:hidden}
+
+/* 마을 영역: 화면 전체. HUD · 메뉴는 그 위에 겹침 */
+.town-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;outline:none}
+.town-viewport:active{cursor:grabbing}
+.town-viewport:focus-visible{box-shadow:inset 0 0 0 3px var(--tl-gold)}
+.town-viewport::before{content:"";position:absolute;inset:0;pointer-events:none;   /* 바다 물결 무늬 */
+  background:repeating-radial-gradient(ellipse 120px 26px at 50% 60%,rgba(255,255,255,.12) 0 2px,transparent 3px 26px)}
+.town-camera{position:absolute;left:0;top:0;transform-origin:0 0}
+.town-viewport.is-moving .town-camera{will-change:transform}
+
+/* ① 땅 */
+.town-ground{position:absolute;overflow:visible;display:block;max-width:none;filter:drop-shadow(0 18px 22px rgba(30,70,90,.25))}
+.tg-tile{stroke:rgba(40,80,40,.07);stroke-width:.8}
+.tg-tile.t-water{stroke:rgba(255,255,255,.12)}
+.tg-tile.t-forest{stroke:rgba(20,50,20,.12)}
+.tg-side{stroke:rgba(60,40,20,.18);stroke-width:.6}
+.tg-strata{fill:none;stroke:rgba(60,40,20,.22);stroke-width:1.2}
+.tg-tuft{fill:none;stroke:#6caa4c;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.tg-bush{fill:#4b8a43;opacity:.85}
+.tg-joint{fill:none;stroke:rgba(140,125,95,.28);stroke-width:1}
+.tg-pebble{fill:#b99f77}
+.tg-wave{fill:none;stroke:#eaf9ff;stroke-width:1.6;stroke-linecap:round;opacity:.7;animation:tg-wave 3.2s ease-in-out infinite;animation-delay:calc(var(--wd,0s) * -1)}
+@keyframes tg-wave{0%,100%{opacity:.25;transform:translateX(-2px)}50%{opacity:.8;transform:translateX(2px)}}
+.tg-garden-line{fill:none;stroke:#fff7dc;stroke-width:2.2;stroke-dasharray:7 6;stroke-linejoin:round;opacity:.9}
+.tg-debug{display:none}
+.town-ground.is-debug .tg-debug{display:inline}
+.tg-label{font:700 15px var(--tl-font);fill:#253b35;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4px}
+.tg-coord{font:10px ui-monospace,monospace;fill:rgba(20,40,30,.75);text-anchor:middle}
+.town-ground.is-debug .tg-tile{stroke:rgba(0,0,0,.18)}
+
+/* 그림자 층 · ② 장면 (건물 · 장식 · 3단계부터 동물) */
+.town-shadows{position:absolute;overflow:visible;display:block;max-width:none;pointer-events:none}
+.town-scene{position:absolute;left:0;top:0;width:0;height:0}
+.tobj{position:absolute;display:block;max-width:none;overflow:visible;pointer-events:none}
+.tobj.is-pick :is(polygon,path,rect,circle,ellipse,text,polyline){pointer-events:visiblePainted;cursor:pointer}
+.tobj.is-pick{transition:filter .15s}
+@media (hover:hover){ .tobj.is-pick:hover{filter:brightness(1.06) drop-shadow(0 0 2px rgba(255,248,220,.95))} }
+.tobj.is-selected{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 5px #ffd77a) brightness(1.04)}
+/* 작은 움직임 (물 · 깃발 · 연기 · 불빛) */
+.tobj .tw-flag{transform-box:fill-box;transform-origin:0 50%;animation:tw-flag 2.4s ease-in-out infinite}
+.tobj .tw-jet{animation:tw-jet 1.6s ease-in-out infinite}
+.tobj .tw-drops{animation:tw-drops 1.6s linear infinite}
+.tobj .tw-ripple{transform-box:fill-box;transform-origin:50% 50%;animation:tw-ripple 2.6s ease-out infinite}
+.tobj .tw-smoke{animation:tw-smoke 4s ease-in-out infinite}
+.tobj .tw-glow{animation:tw-glow 3.4s ease-in-out infinite}
+@keyframes tw-flag{0%,100%{transform:skewY(0) scaleX(1)}50%{transform:skewY(6deg) scaleX(.86)}}
+@keyframes tw-jet{0%,100%{opacity:.75}50%{opacity:1}}
+@keyframes tw-drops{0%{transform:translateY(-6px);opacity:0}30%{opacity:1}100%{transform:translateY(4px);opacity:0}}
+@keyframes tw-ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+@keyframes tw-smoke{0%{transform:translate(0,4px);opacity:0}25%{opacity:1}100%{transform:translate(4px,-10px);opacity:0}}
+@keyframes tw-glow{0%,100%{opacity:.75}50%{opacity:1}}
+.town-info__desc{margin-bottom:10px}
+
+/* 그래픽 교체 (T1) — 그림 파일 물체 · 타일 · 디버그 */
+.tobj.is-img .tobj__img{position:absolute;left:0;top:0;width:100%;height:100%;display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.tobj.is-img .tobj__fx{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;display:block;max-width:none}
+.tg-tile.is-tex{stroke:none}
+.tg-tile.is-tex{shape-rendering:crispEdges}
+.town-gfx-debug{position:absolute;z-index:99999;overflow:visible;pointer-events:none;display:block;max-width:none}
+.gd-foot{fill:rgba(255,64,129,.12);stroke:#ff4081;stroke-width:1;stroke-dasharray:3 2}
+.gd-foot.is-floor{fill:rgba(0,150,255,.12);stroke:#1e88e5}
+.gd-anchor{stroke:#d50000;stroke-width:1.4}
+.gd-door{fill:rgba(0,200,83,.28);stroke:#00a152;stroke-width:1}
+.gd-box{fill:none;stroke:#6200ea;stroke-width:1;stroke-dasharray:4 3}
+.gd-key{font:8px ui-monospace,monospace;fill:#6200ea}
+
+/* ③ 동물 — 발 위치가 원점 (.actor 의 transform 으로 이동) */
+.town-actors{position:static}
+.actor{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;will-change:transform}
+.actor__shadow{position:absolute;left:-15px;top:-5px;width:30px;height:10px;border-radius:50%;background:rgba(30,58,34,.3)}
+.actor__body{position:absolute;left:0;top:0;width:0;height:0}
+.actor__sprite{position:absolute;left:0;bottom:0;width:0;height:0;transform-origin:50% 100%}
+.actor__img,.actor__sheet{position:absolute;bottom:-1px;left:0;transform:translateX(-50%);display:block;max-width:none;pointer-events:auto;cursor:pointer;
+  -webkit-user-drag:none;user-select:none;filter:drop-shadow(0 1px 0 rgba(255,255,255,.6))}
+.actor__sprite[data-state="walk"]{animation:act-hop .46s ease-in-out infinite}
+.actor__sprite[data-state="idle"]{animation:act-breathe 2.6s ease-in-out infinite}
+@keyframes act-hop{0%,100%{transform:translateY(0) rotate(-3deg) scale(1.03,.97)}25%{transform:translateY(-5px) rotate(0) scale(.98,1.03)}50%{transform:translateY(0) rotate(3deg) scale(1.03,.97)}75%{transform:translateY(-5px) rotate(0) scale(.98,1.03)}}
+@keyframes act-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.035,.965)}}
+.actor.is-selected .actor__img,.actor.is-selected .actor__sheet{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 5px #ffd77a)}
+.actor.is-selected .actor__shadow{box-shadow:0 0 0 2px rgba(255,215,122,.9)}
+.actor__emote{position:absolute;left:0;bottom:46px;transform:translateX(-50%);font-size:16px;line-height:1;padding:3px 5px;border-radius:10px;
+  background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.18);animation:act-emote 1.4s ease-out forwards;pointer-events:none}
+@keyframes act-emote{0%{opacity:0;transform:translate(-50%,6px) scale(.7)}20%{opacity:1;transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px)}}
+
+/* 상단 HUD (표시만) */
+.town-hud{position:absolute;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:8px;
+  padding:calc(var(--tl-safe-top) + 8px) 10px 8px;pointer-events:none}
+.town-hud > *{pointer-events:auto}
+.town-hud__res{display:flex;gap:6px;flex:1;min-width:0;justify-content:safe center;flex-wrap:nowrap;overflow:hidden}
+.town-hud__tools{display:flex;gap:6px;align-items:center}
+.tl-hud__profile{cursor:default}
+
+/* 확대 버튼 */
+.town-zoom{position:absolute;z-index:20;right:10px;bottom:calc(var(--tl-nav-h) + var(--tl-safe-bottom) + 14px);display:flex;flex-direction:column;gap:6px}
+
+/* 하단 메뉴 (1단계: 자리만) */
+.town-nav{position:absolute;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);
+  height:calc(var(--tl-nav-h) + var(--tl-safe-bottom));padding:6px 8px calc(var(--tl-safe-bottom) + 6px);
+  background:linear-gradient(180deg,rgba(37,59,53,.9),rgba(24,38,31,.95));border-top:2px solid rgba(215,183,121,.55);box-shadow:0 -8px 24px rgba(0,0,0,.18)}
+.town-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:var(--tl-cream);font-size:12px;font-weight:700;border-radius:14px;opacity:.85}
+.town-nav button span{font-size:21px;line-height:1.1}
+.town-nav:has(> #townNavStory[hidden]){grid-template-columns:repeat(4,1fr)}   /* 프롤로그 중 [스토리] 숨김 (js/town/hub.js) */
+.town-nav button[aria-current="page"]{background:rgba(215,183,121,.18);color:var(--tl-gold);opacity:1}
+
+.town-toast{position:absolute;left:50%;top:calc(var(--tl-safe-top) + 64px);transform:translateX(-50%);z-index:40;padding:8px 14px;border-radius:12px;
+  background:rgba(37,59,53,.94);color:var(--tl-cream);font-size:14px;box-shadow:var(--tl-shadow)}
+.town-debug{position:absolute;left:10px;bottom:calc(var(--tl-nav-h) + var(--tl-safe-bottom) + 14px);z-index:20;max-width:calc(100% - 80px);
+  padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.88);font:12px ui-monospace,monospace;color:#253b35;box-shadow:var(--tl-shadow)}
+
+/* 좁은 휴대폰: 쌓인 코인 칩 숨김 · 이름 줄임 · 배지 작게 */
+@media (max-width:440px){
+  .town-hud{gap:6px;padding-left:8px;padding-right:8px}
+  .town-hud .tl-res.is-pending{display:none}
+  .town-hud .tl-res{padding:0 8px}
+  .tl-hud__profile{max-width:38vw}
+  .tl-hud__who b{max-width:22vw}
+  .town-hud .tl-env{padding:2px 6px;font-size:10px;letter-spacing:.02em}
+}
+@media (max-width:340px){
+  .tl-hud__who{display:none}
+  .tl-hud__profile{padding-right:4px}
+}
+@media (min-width:768px){
+  :root{--tl-hud-h:68px}
+  .town-nav{left:50%;right:auto;width:min(520px,92vw);transform:translateX(-50%);bottom:12px;border-radius:var(--tl-r-lg);
+    border:2px solid rgba(215,183,121,.55);height:var(--tl-nav-h);padding:6px 8px}
+  .town-zoom{bottom:24px}
+  .town-debug{bottom:24px}
+}
+/* 높이가 낮은 화면 (휴대폰 가로): 메뉴 · HUD 를 얇게 해서 마을 영역을 넓힘 */
+@media (max-height:500px){
+  :root{--tl-nav-h:46px}
+  .town-hud{padding-top:calc(var(--tl-safe-top) + 4px);padding-bottom:4px}
+  .town-hud .tl-hud__avatar{width:28px;height:28px;font-size:16px}
+  .town-hud .tl-hud__who small{display:none}
+  .town-hud .tl-res{height:26px}
+  .town-nav button{flex-direction:row;gap:4px;font-size:12px}
+  .town-nav button span{font-size:17px}
+  .town-zoom{flex-direction:row;bottom:auto;top:calc(var(--tl-safe-top) + 46px)}
+  .town-zoom .tl-icon-btn{width:34px;height:34px;font-size:15px}
+}
+@media (max-height:500px) and (min-width:768px){
+  .town-nav{bottom:6px}
+}
+@media (prefers-reduced-motion:reduce){ .tg-wave,.tobj *,.actor *{animation:none !important} }
+
+/* 마을 허브 (H3): 잠긴 던전 칸 · 작은 글씨 */
+.town-nav button small{font-size:10px;font-weight:700;line-height:1;color:var(--tl-gold)}
+.town-nav button.is-locked{opacity:.55}
+.town-nav button:focus-visible{outline:2px solid var(--tl-gold);outline-offset:-2px}
+
+/* 설정 (지인 배포 3단계): 오른쪽 위 [⚙️ 설정] · 저장 백업 · 불러오기 · 처음부터 다시 */
+.town-settings{display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:0 12px;border-radius:999px;white-space:nowrap;font-size:13px;font-weight:700;
+  background:rgba(251,246,236,.94);color:var(--tl-forest);box-shadow:var(--tl-shadow)}
+.town-set__notice{margin:0;padding:10px 12px;border-radius:12px;background:#fff3d2;font-size:14px;line-height:1.6;word-break:keep-all}
+.town-set__list{display:flex;flex-direction:column;gap:10px}
+.tl-btn.town-set__danger{color:#9c2f1c;border-color:#d08b7c}
+.town-set__msg{margin:0;min-height:1.5em;font-size:13px;font-weight:700;color:var(--tl-forest);word-break:keep-all;overflow-wrap:anywhere}
+.town-set__msg.is-bad{color:#9c2f1c}
+@media (max-height:500px){ .town-settings{min-height:34px;padding:0 10px} }
+
+/* 모바일 보정 (지인 배포 4단계): 좁은 세로 화면은 마을 이름을 접어 재화 숫자가 잘리지 않게 (아이콘은 남김) */
+@media (max-width:440px){
+  .town-hud .tl-hud__who{display:none}
+  .town-hud .tl-hud__profile{padding-right:4px}
+}

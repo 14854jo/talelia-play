@@ -1,0 +1,14 @@
+/* TALELIA · animations.css — 살아 있는 마을 (가벼운 CSS 애니메이션) */
+@keyframes tl-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes tl-pop{from{opacity:0;transform:translate(-50%,-8px) scale(.96)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes tl-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* 동물은 제자리에서 통통 — 개체마다 시차(--d) */
+.tl-obj.is-animal .tl-obj__body > image,
+.tl-obj.is-animal .tl-obj__body > text,
+.tl-obj.is-animal .tl-obj__body > circle{animation:tl-bob 2.4s ease-in-out infinite;animation-delay:calc(var(--d,0s) * -1)}
+.tl-logo__mark{animation:tl-float 3s ease-in-out infinite}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}

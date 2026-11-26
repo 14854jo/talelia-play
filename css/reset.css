@@ -1,0 +1,13 @@
+/* TALELIA · reset.css */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+h1,h2,h3,p,ul,dl,dd,figure{margin:0}
+ul{padding:0;list-style:none}
+img,svg{display:block;max-width:100%}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+button:disabled{cursor:default;opacity:.55}
+[hidden]{display:none !important}
+html:not(.is-dev) [data-dev-only]{display:none !important}   /* 개발용 표시: ?dev=1 일 때만 (js/devmode.js) */
+:focus-visible{outline:3px solid var(--tl-gold);outline-offset:2px}

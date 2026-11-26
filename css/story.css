@@ -1,0 +1,147 @@
+/* TALELIA · story.css — 대화 장면 전용 (마을 · 전투 CSS 와 분리)
+ *  무대(.st) = 넓은 화면 16:9 · 세로 화면은 화면 가득. 크기 컨테이너라 cqw(폭) · cqh(높이) 로 함께 커지고 작아짐
+ *  톤: .st[data-tone="base"] 양피지 · .st[data-tone="lab"] 차갑게 바랜 종이 — 아래 토큰만 바뀌고 구조는 같음
+ *  캐릭터 크기: 표정 그림 1px(원본 시트) = --u. 캐릭터끼리 같은 배율이라 원본 시트의 크기 비율 그대로 (cast.js scale 로 보정) */
+body{background:#141920;color:var(--tl-ink);font-family:var(--tl-font);font-size:14px}
+.st-page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px}
+
+/* ---------- 톤 토큰 ---------- */
+.st{
+  --st-paper-1:#f8eed6; --st-paper-2:#ecdcb6; --st-burn:rgba(140,96,40,.28);
+  --st-edge:#8a6a3c; --st-edge-soft:rgba(138,106,60,.45);
+  --st-ink:#3a2a19; --st-ink-soft:#6e5a40;
+  --st-btn:rgba(138,106,60,.14); --st-btn-ink:#5a4426; --st-btn-on:#8a6a3c;
+  --st-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .14 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --st-sky:linear-gradient(180deg, #cfe6c4, #a9d39a);
+  --st-shadow:0 6px 18px rgba(20,14,6,.38);
+}
+.st[data-tone="lab"]{
+  --st-paper-1:#e3e8ea; --st-paper-2:#c9d2d7; --st-burn:rgba(52,72,88,.30);
+  --st-edge:#5b6a75; --st-edge-soft:rgba(91,106,117,.5);
+  --st-ink:#1d2830; --st-ink-soft:#4c5c68;
+  --st-btn:rgba(91,106,117,.16); --st-btn-ink:#33424d; --st-btn-on:#4f6070;
+  --st-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .27 0 0 0 0 .32 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --st-sky:linear-gradient(180deg, #3a4652, #1f272f);
+  --st-shadow:0 6px 18px rgba(4,10,16,.5);
+}
+
+/* ---------- 무대 ---------- */
+.st{position:relative;width:min(100%, calc((100vh - var(--st-tools-h, 64px)) * 16 / 9));aspect-ratio:16/9;container-type:size;overflow:hidden;
+  border-radius:12px;background:#2b3440;box-shadow:0 8px 30px rgba(0,0,0,.45);user-select:none;-webkit-user-select:none;cursor:pointer;
+  --u:calc(min(50cqh, 34cqw) / 340);                 /* 표정 그림 1px 의 화면 크기 (바탕 높이 340 = 무대 높이의 50%) */
+  --box-h:clamp(112px, 26cqh, 200px);                /* 대화창 높이 */
+  --gut:max(10px, 2.2cqw)}
+.st:focus-visible{outline:3px solid var(--tl-gold);outline-offset:2px}
+html:not(.is-dev) .st{--st-tools-h:16px}   /* 일반 접속: 아래 도구 줄이 없으니 무대를 그만큼 크게 */
+@media (max-aspect-ratio: 4/5){   /* 세로 휴대폰: 화면 가득 (배경은 가운데를 잘라 채움) */
+  .st-page{padding:0;gap:0}
+  .st{width:100%;aspect-ratio:auto;height:calc(100svh - var(--st-tools-h, 64px));border-radius:0;--box-h:clamp(124px, 19cqh, 170px);--u:calc(min(40cqh, 62cqw) / 340)}
+  html:not(.is-dev) .st{--st-tools-h:0px}
+}
+.st-bg{position:absolute;inset:0;background:var(--st-sky) center / cover no-repeat}
+.st-bg[data-bg]:not([data-bg=""]){background-color:#2b3440;background-position:center bottom;background-size:cover}
+
+/* ---------- 캐릭터 (아래쪽은 대화창 뒤로 들어감) ---------- */
+.st-cast{position:absolute;left:0;right:0;top:0;bottom:calc(var(--box-h) * .78);overflow:hidden}   /* 바닥선 아래(sink 로 내린 아랫몸)는 잘라 대화창 아래 틈으로 비치지 않게 */   /* 그림 아래쪽(잘린 망토 끝)만 대화창 뒤로 */
+.st-por{position:absolute;bottom:calc(var(--h) * var(--u) * var(--k, 1) * var(--sink, 0) * -1);margin:0;   /* sink = 그림 키의 이 비율만큼 바닥선 아래로 (대화창 뒤 · cast.js) */
+  translate:-50% 0;transform-origin:50% 100%;
+  --pw:calc(var(--w) * var(--u) * var(--k, 1));width:var(--pw);height:calc(var(--h) * var(--u) * var(--k, 1));
+  left:clamp(calc(var(--pw) / 2), var(--x, 50%), calc(100% - var(--pw) / 2));   /* 좁은 화면에서도 그림이 무대 밖으로 나가지 않게 */
+  transition:left .38s ease, translate .22s ease, scale .22s ease, filter .25s ease}
+.st-por[data-pos="left"]{--x:25%}.st-por[data-pos="center"]{--x:50%}.st-por[data-pos="right"]{--x:75%}   /* 자리 = 캐릭터 가운데 (무대 폭 %) · 양끝 25/75 = 연구소 배경 양쪽 문틀(무대 폭 10%) 안쪽 */
+@media (max-aspect-ratio: 4/5){ .st-por[data-pos="left"]{--x:27%}.st-por[data-pos="right"]{--x:73%} }
+.st-por img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 .6cqh 1.2cqh rgba(0,0,0,.28));pointer-events:none}
+.st-por.is-speaking{translate:-50% -1.4%;scale:1.03}
+.st-por.is-dim{filter:brightness(.56) saturate(.72)}
+.st[data-tone="lab"] .st-por.is-dim{filter:brightness(.5) saturate(.6)}
+.st-por.no-move-anim{transition:none}
+.st-por figcaption{display:none}
+.st-por.is-missing img{visibility:hidden}
+.st-por.is-missing figcaption{display:flex;position:absolute;inset:18% 12% 0;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.7);border-radius:16px 16px 0 0;
+  background:rgba(20,26,32,.55);color:#fff;font-weight:700;font-size:max(13px, 1.4cqw)}
+
+/* ---------- 대화창 (양피지) ---------- */
+.st-box{position:absolute;left:var(--gut);right:var(--gut);bottom:max(8px, 1.6cqh);height:var(--box-h);z-index:10;
+  padding:max(14px, 3.2cqh) max(16px, 2.6cqw) max(12px, 2.4cqh);color:var(--st-ink);cursor:pointer;
+  border:2px solid var(--st-edge);border-radius:14px;
+  background:radial-gradient(130% 160% at 50% 45%, transparent 58%, var(--st-burn) 100%), var(--st-grain), linear-gradient(180deg, var(--st-paper-1), var(--st-paper-2));
+  box-shadow:inset 0 0 0 4px var(--st-paper-1), inset 0 0 0 5px var(--st-edge-soft), var(--st-shadow);
+  transition:background-color .4s, color .4s}
+.st-plate{position:absolute;left:max(14px, 2.4cqw);top:0;translate:0 -58%;padding:.18em .9em .22em;border-radius:10px;
+  background:var(--np, #5B5146);color:#fff;font-weight:800;font-size:max(14px, 1.45cqw);letter-spacing:.02em;line-height:1.3;white-space:nowrap;
+  border:2px solid var(--st-paper-1);box-shadow:0 0 0 1.5px var(--st-edge), 0 3px 8px rgba(0,0,0,.25)}
+.st[data-tone="lab"] .st-plate{background:color-mix(in srgb, var(--np, #5B5146) 45%, #3c4a55)}
+.st-text{margin:0;height:100%;overflow:hidden;font-size:clamp(15px, 1.65cqw, 24px);line-height:1.62;letter-spacing:.01em;word-break:keep-all;overflow-wrap:anywhere}
+.st-text span{opacity:0}
+.st-text span.on{opacity:1}
+.st-box.is-narr .st-text{color:var(--st-ink-soft);padding-left:.6em;border-left:3px solid var(--st-edge-soft)}
+.st-next{position:absolute;right:max(14px, 2cqw);bottom:max(8px, 1.6cqh);color:var(--st-edge);font-size:max(12px, 1.1cqw);animation:st-bob 1s ease-in-out infinite}
+@keyframes st-bob{50%{translate:0 25%}}
+
+/* 대화창 오른쪽 위 버튼 */
+.st-ctrl{position:absolute;right:max(10px, 1.6cqw);top:0;translate:0 -55%;display:flex;gap:max(4px, .5cqw)}
+.st-cbtn{min-height:32px;padding:.2em .85em;border-radius:var(--tl-r-pill);font-size:max(12px, 1cqw);font-weight:700;line-height:1.4;
+  background:var(--st-paper-1);color:var(--st-btn-ink);border:1.5px solid var(--st-edge);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.st-cbtn:hover{background:var(--st-paper-2)}
+.st-cbtn.is-on,.st-cbtn[aria-pressed="true"]{background:var(--st-btn-on);color:#fff}
+@media (max-width: 480px){ .st-cbtn{padding:.2em .6em} }
+
+/* 화면 낭독기 전용 */
+.st-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 지난 대사 로그 ---------- */
+.st-log{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:max(10px, 3cqh) max(10px, 4cqw);
+  background:rgba(10,14,18,.6);cursor:default}
+.st-log__panel{width:min(100%, 880px);max-height:100%;display:flex;flex-direction:column;border-radius:14px;border:2px solid var(--st-edge);color:var(--st-ink);
+  background:var(--st-grain), linear-gradient(180deg, var(--st-paper-1), var(--st-paper-2));box-shadow:var(--st-shadow)}
+.st-log header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1.5px solid var(--st-edge-soft)}
+.st-log h2{font-size:16px;font-weight:800}
+.st-log ol{margin:0;padding:8px 14px 14px;list-style:none;overflow:auto;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.55;user-select:text;-webkit-user-select:text}
+.st-log li b{display:inline-block;margin-bottom:2px;padding:0 .6em;border-radius:8px;background:var(--np, #5B5146);color:#fff;font-size:13px}
+.st[data-tone="lab"] .st-log li b{background:color-mix(in srgb, var(--np, #5B5146) 45%, #3c4a55)}
+.st-log li p{margin:0;white-space:pre-line}
+.st-log li.is-narr p{color:var(--st-ink-soft);padding-left:.6em;border-left:3px solid var(--st-edge-soft)}
+
+/* ---------- 자리표시 카드 (전투 · 컷 · 장면 끝) ---------- */
+.st-card{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(10,14,18,.55);cursor:default}
+.st-card__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.st-card__box{position:relative;max-width:min(92%, 520px);padding:18px 24px;border-radius:14px;text-align:center;color:var(--st-ink);border:2px solid var(--st-edge);
+  background:var(--st-grain), linear-gradient(180deg, var(--st-paper-1), var(--st-paper-2));box-shadow:var(--st-shadow)}
+.st-card[data-kind="cut"] .st-card__img ~ .st-card__box{position:absolute;bottom:4cqh;padding:8px 14px}
+/* 컷 연출 층 (js/story/fx.js) · 그림 위 · 누르면 건너뛰기 · 톤과 무관 */
+.st-card.is-fx{cursor:pointer;overflow:hidden}
+.st-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.st-fx > *{position:absolute;opacity:0;pointer-events:none}
+.st-fx__tint{inset:0;mix-blend-mode:screen}
+.st-fx__flash{inset:0;background:#fff}
+.st-fx__orb,.st-fx__burst{border-radius:50%;transform:translate(-50%,-50%)}
+.st-fx__orb{background:radial-gradient(circle, #fff 0, #fff 16%, var(--fx-c) 42%, transparent 70%);
+  box-shadow:0 0 18px 6px var(--fx-c), 0 0 46px 14px color-mix(in srgb, var(--fx-c) 55%, transparent);mix-blend-mode:screen}
+.st-fx__burst{mix-blend-mode:screen}
+.st-fx__dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px var(--fx-c);transform:translate(-50%,-50%)}
+.st-card h2{font-size:max(17px, 1.7cqw);font-weight:800}
+.st-card p{margin-top:6px;font-size:14px;color:var(--st-ink-soft)}
+.st-card__btns{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.st-card__btns:empty{display:none}
+.st-btn{min-width:84px;min-height:36px;padding:6px 16px;border-radius:var(--tl-r-pill);font-weight:700;border:1.5px solid var(--st-edge);background:var(--st-paper-1);color:var(--st-btn-ink)}
+.st-btn--primary{background:var(--st-btn-on);color:#fff}
+
+/* ---------- 무대 아래 도구 줄 (확인용) ---------- */
+.st-tools{width:min(100%, 1280px);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:4px 8px;color:#d9d2c3;font-size:13px}
+.st-tools select{padding:3px 6px;border-radius:8px;background:#232b35;color:#eee;border:1px solid #44505e}
+.st-tbtn{padding:4px 12px;border-radius:var(--tl-r-pill);background:#2c3642;color:#eee;border:1px solid #44505e;font-weight:600}
+.st-tbtn.is-bad{background:#6b2f22;border-color:#a5533f}
+.st-warn{flex-basis:100%;margin:0;padding:8px 10px;max-height:160px;overflow:auto;border-radius:8px;background:#1d242c;color:#f0c9a8;font-size:12px;white-space:pre-wrap}
+
+/* 움직임 줄이기: 시스템 설정 또는 ?motion=reduce (player.js 가 .is-reduced 를 붙임) */
+.st.is-reduced .st-por{transition:none}
+.st.is-reduced .st-next{animation:none}
+@media (prefers-reduced-motion: reduce){
+  .st:not(.is-full-motion) .st-por{transition:none}
+  .st:not(.is-full-motion) .st-next{animation:none}
+}
+
+/* 모바일 보정 (지인 배포 4단계): 주소창에 가리지 않게 · var() 가 든 선언이라 @supports 로 감쌈 (세로 화면은 위의 svh 그대로) */
+@supports (height: 100dvh){
+  @media (min-aspect-ratio: 801/1000){ .st{width:min(100%, calc((100dvh - var(--st-tools-h, 64px)) * 16 / 9))} }
+}
