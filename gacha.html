@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2a2238">
+<meta name="color-scheme" content="only light">   <!-- 휴대폰 브라우저의 강제 다크 모드가 그림 · 색을 바꾸지 않게 (지인 배포 · 마을이 어둡게 보이던 문제) -->
 <title data-dev-title="TALELIA 정령 소환 (프로토타입)">TALELIA · 정령 소환</title>
-<script src="js/devmode.js?v=ec223e365bf9"></script>
+<script src="js/devmode.js?v=08630ddc70d4"></script>
 <!-- 뽑기 · 수집: 소환 화면 · 소환 연출(영상 → 컷인 → 카드) · 보관함 · 캐릭터 상세(강화 · 승급 · 초월) · 편성 · 도감
      · 상세 · 편성 = js/gacha/manage.js (리그가 있는 캐릭터는 상세에서 대기 동작 · 재생기 js/battle/rig.js 를 읽기만 함)
      · 규칙 = js/gacha/rules.js · 저장 = js/gacha/store.js (이 브라우저에만 · 서버 · Supabase 연결 없음) · 화면 = js/gacha/ui.js · 데이터 = data/gacha/species.js
@@ -18,10 +19,10 @@
   addEventListener('unhandledrejection', e => window.__gachaErrors.push(String(e.reason)));
   (function(){ const ce = console.error; console.error = function(){ window.__gachaErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
 </script>
-<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/gacha.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/topbar.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/reset.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/variables.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/gacha.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/topbar.css?v=08630ddc70d4">
 </head>
 <body>
 <div id="gacha" class="gc">
@@ -279,39 +280,39 @@
   </div>
   <div id="gcToast" class="gc-toast" role="status" hidden></div>
 </div>
-<script src="js/topbar.js?v=ec223e365bf9"></script>
-<script src="data/gacha/species.js?v=ec223e365bf9"></script>
-<script src="data/gacha/equipment.js?v=ec223e365bf9"></script>
-<script src="data/dungeon/floors.js?v=ec223e365bf9"></script>
-<script src="js/gacha/rules.js?v=ec223e365bf9"></script>
-<script src="js/gacha/passive.js?v=ec223e365bf9"></script>
-<script src="js/gacha/story-growth.js?v=ec223e365bf9"></script>
-<script src="js/gacha/store.js?v=ec223e365bf9"></script>
-<script src="js/gacha/gear.js?v=ec223e365bf9"></script>
-<script src="js/dungeon/rules.js?v=ec223e365bf9"></script>
-<script src="data/names.js?v=ec223e365bf9"></script>
-<script src="js/names.js?v=ec223e365bf9"></script>
+<script src="js/topbar.js?v=08630ddc70d4"></script>
+<script src="data/gacha/species.js?v=08630ddc70d4"></script>
+<script src="data/gacha/equipment.js?v=08630ddc70d4"></script>
+<script src="data/dungeon/floors.js?v=08630ddc70d4"></script>
+<script src="js/gacha/rules.js?v=08630ddc70d4"></script>
+<script src="js/gacha/passive.js?v=08630ddc70d4"></script>
+<script src="js/gacha/story-growth.js?v=08630ddc70d4"></script>
+<script src="js/gacha/store.js?v=08630ddc70d4"></script>
+<script src="js/gacha/gear.js?v=08630ddc70d4"></script>
+<script src="js/dungeon/rules.js?v=08630ddc70d4"></script>
+<script src="data/names.js?v=08630ddc70d4"></script>
+<script src="js/names.js?v=08630ddc70d4"></script>
 <script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
-<script src="js/gacha/ui.js?v=ec223e365bf9"></script>
+<script src="js/gacha/ui.js?v=08630ddc70d4"></script>
 <!-- 상세 화면의 대기 동작 (전투 리그 재생기와 리그 데이터를 읽기만 함 · 그림은 상세를 열 때 불러옴) -->
-<script src="js/battle/rig.js?v=ec223e365bf9"></script>
-<script src="js/battle/fx-kit.js?v=ec223e365bf9"></script>   <!-- 리그의 코드로 그리는 층(다람쥐 끈 · 달토끼 궤적)이 씀 -->
-<script src="data/rigs/_kit.js?v=ec223e365bf9"></script>
-<script src="data/rigs/subject_24.js?v=ec223e365bf9"></script>
-<script src="data/rigs/farmer_rabbit.js?v=ec223e365bf9"></script>
-<script src="data/rigs/squirrel_slinger.js?v=ec223e365bf9"></script>
-<script src="data/rigs/mole_miner.js?v=ec223e365bf9"></script>
-<script src="data/rigs/duck_healer.js?v=ec223e365bf9"></script>
-<script src="data/rigs/turtle_guard.js?v=ec223e365bf9"></script>
-<script src="data/rigs/fox_mage.js?v=ec223e365bf9"></script>
-<script src="data/rigs/owl_sage.js?v=ec223e365bf9"></script>
-<script src="data/rigs/moon_rabbit.js?v=ec223e365bf9"></script>
-<script src="data/gacha/trial.js?v=ec223e365bf9"></script>
-<script src="js/gacha/gear-ui.js?v=ec223e365bf9"></script>
-<script src="js/gacha/manage.js?v=ec223e365bf9"></script>
-<script src="data/stage/chapter1.js?v=ec223e365bf9"></script>
-<script src="js/stage/rules.js?v=ec223e365bf9"></script>
-<script src="js/gacha/dungeon-ui.js?v=ec223e365bf9"></script>
-<script src="js/stage/reward-fix.js?v=ec223e365bf9"></script>
+<script src="js/battle/rig.js?v=08630ddc70d4"></script>
+<script src="js/battle/fx-kit.js?v=08630ddc70d4"></script>   <!-- 리그의 코드로 그리는 층(다람쥐 끈 · 달토끼 궤적)이 씀 -->
+<script src="data/rigs/_kit.js?v=08630ddc70d4"></script>
+<script src="data/rigs/subject_24.js?v=08630ddc70d4"></script>
+<script src="data/rigs/farmer_rabbit.js?v=08630ddc70d4"></script>
+<script src="data/rigs/squirrel_slinger.js?v=08630ddc70d4"></script>
+<script src="data/rigs/mole_miner.js?v=08630ddc70d4"></script>
+<script src="data/rigs/duck_healer.js?v=08630ddc70d4"></script>
+<script src="data/rigs/turtle_guard.js?v=08630ddc70d4"></script>
+<script src="data/rigs/fox_mage.js?v=08630ddc70d4"></script>
+<script src="data/rigs/owl_sage.js?v=08630ddc70d4"></script>
+<script src="data/rigs/moon_rabbit.js?v=08630ddc70d4"></script>
+<script src="data/gacha/trial.js?v=08630ddc70d4"></script>
+<script src="js/gacha/gear-ui.js?v=08630ddc70d4"></script>
+<script src="js/gacha/manage.js?v=08630ddc70d4"></script>
+<script src="data/stage/chapter1.js?v=08630ddc70d4"></script>
+<script src="js/stage/rules.js?v=08630ddc70d4"></script>
+<script src="js/gacha/dungeon-ui.js?v=08630ddc70d4"></script>
+<script src="js/stage/reward-fix.js?v=08630ddc70d4"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /* =====================================================================
  * TALELIA · stage/ui.js — 스테이지 화면 (S4 · docs/design/stage-system.md 1 · 3 · 4장 · 화면 전용 · 규칙은 js/stage/rules.js · 저장은 뽑기 저장 v4 의 stage)
  *
- *  지도: 1장 노드 6개 (잠김 · 열림 · 클리어) · 스테이지 시트(나오는 적 · 적 전투력 · 내 편성 전투력 · 첫 클리어 보상 · 장비 미적용 안내) · [입장]
+ *  지도: 1장 월드맵 (배경 그림 + 길 SVG + 노드 6개 · 잠김 · 열림 · 클리어 · 배치 = js/stage/map-layout.js 의 % 좌표 · ?dev=1 = 10% 격자 · 좌표) · 스테이지 시트(나오는 적 · 적 전투력 · 내 편성 전투력 · 첫 클리어 보상 · 장비 미적용 안내) · [입장]
  *  입장:  (1-1 처음이면 안내 ② 편성 · 장비) → X.enter(입장 순번 · runId · 입장에는 비용 없음) → 저장 → story.html?scene=st1_N_pre&run=runId  (전후 대사 · 전투)
  *         클리어한 스테이지는 [대사 건너뛰고 전투] = battle.html?stage=…&run=…&return=stage.html (보상 없음)
  *  결과 반영 (돌아온 주소 ?stage=1-N&run=runId&result=win|lose|draw|error) — 딱 한 번 (던전과 같은 방식):
@@ -74,18 +74,73 @@
     if(!S.sel || !X.stageOf(DS, S.sel)) S.sel = defaultSel(sv);
     $('#sgTitle').textContent = chapterTitle(); $('#sgStones').textContent = fmt(sv.stones); $('#sgGold').textContent = fmt(sv.gold);
     $('#sgTown').setAttribute('href', urls.town());
-    // 노드
-    $('#sgNodes').innerHTML = DS.stages.map(st => {
-      const s = stateOf(sv, st), label = s === 'locked' ? '🔒 ' + DS.stages[X.indexOf(DS, st.id) - 1].id + ' 클리어 필요' : s === 'cleared' ? '★ 클리어' : '도전 가능';
-      return '<li><button type="button" class="sg-node" data-stage="' + st.id + '" data-state="' + s + '" aria-selected="' + (st.id === S.sel) + '" aria-label="' + esc(st.id + ' ' + st.title + ' · ' + label) + '">'
-        + '<b>' + st.id + '</b><span>' + esc(st.title) + '</span><small>' + esc(label) + '</small></button></li>';
-    }).join('');
+    renderMap(sv);
     // 끝나지 않은 판
     const op = sv.stage.open, ol = $('#sgOpen');
     ol.hidden = !op;
     ol.innerHTML = op ? '<li><span>끝나지 않은 전투 · ' + esc(op.id) + ' <small data-dev-only>' + esc(op.runId) + '</small></span><button type="button" class="gc-btn gc-btn--small" data-resume="' + esc(op.id) + '">이어서 하기</button></li>' : '';
     renderSheet(); renderNotice(); renderGuide();
   }
+  /* ---------- 월드맵 (화면 전용 · 상태는 stateOf 그대로) ---------- */
+  const MAP = window.TALELIA_STAGE_MAP || { bg: null, nodes: {}, paths: [] };
+  const posOf = (st, i) => MAP.nodes[st.id] || { x: 10 + i * 80 / Math.max(1, DS.stages.length - 1), y: 50 };   // 좌표가 빠진 스테이지는 가운데 줄에 차례로
+  /** 길 상태: done = 도착 스테이지 클리어 · next = 출발은 클리어 · 도착은 도전 가능 · locked = 그 밖 */
+  function pathState(sv, p){
+    const a = X.stageOf(DS, p.from), b = X.stageOf(DS, p.to); if(!a || !b) return 'locked';
+    const sa = stateOf(sv, a), sb = stateOf(sv, b);
+    return sb === 'cleared' && sa === 'cleared' ? 'done' : sa === 'cleared' && sb === 'open' ? 'next' : 'locked';
+  }
+  /** 점들을 지나는 부드러운 곡선 (Catmull-Rom → 3차 베지어) · 좌표는 viewBox 1600×900 */
+  function curve(pts){
+    const P = pts.map(([x, y]) => [x * 16, y * 9]), f = n => Math.round(n * 10) / 10;
+    let d = 'M' + f(P[0][0]) + ' ' + f(P[0][1]);
+    for(let i = 0; i < P.length - 1; i++){
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      d += ' C' + f(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + f(p1[1] + (p2[1] - p0[1]) / 6) + ' ' + f(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + f(p2[1] - (p3[1] - p1[1]) / 6) + ' ' + f(p2[0]) + ' ' + f(p2[1]);
+    }
+    return d;
+  }
+  let bgSet = false;
+  function renderMap(sv){
+    const world = $('#sgWorld'), img = $('#sgMapBg');
+    if(!bgSet){ bgSet = true;   // 배경 그림: 한 번만 · 못 불러오면 임시 배경
+      if(MAP.bg){ img.onload = () => { img.hidden = false; world.classList.remove('is-noart'); }; img.onerror = () => { img.hidden = true; world.classList.add('is-noart'); }; img.src = MAP.bg; }
+      else world.classList.add('is-noart');
+    }
+    // 길
+    $('#sgPaths').innerHTML = (MAP.paths || []).filter(p => MAP.nodes[p.from] && MAP.nodes[p.to]).map(p => {
+      const st = pathState(sv, p), d = curve([[MAP.nodes[p.from].x, MAP.nodes[p.from].y]].concat(p.via || [], [[MAP.nodes[p.to].x, MAP.nodes[p.to].y]]));
+      return '<g class="sg-path" data-from="' + esc(p.from) + '" data-to="' + esc(p.to) + '" data-state="' + st + '">'
+        + (st === 'done' ? '<path class="sg-path__glow" d="' + d + '"/>' : '') + '<path class="sg-path__case" d="' + d + '"/><path class="sg-path__line" d="' + d + '"/></g>';   // case = 그림 위에서도 보이게 깔아 두는 어두운 테두리 선
+    }).join('');
+    // 노드 (클래스 · 속성은 예전 그대로: .sg-node · data-stage · data-state · aria-selected)
+    $('#sgNodes').innerHTML = DS.stages.map((st, i) => {
+      const s = stateOf(sv, st), label = s === 'locked' ? '🔒 ' + DS.stages[X.indexOf(DS, st.id) - 1].id + ' 클리어 필요' : s === 'cleared' ? '★ 클리어' : '도전 가능';
+      const p = posOf(st, i), side = ['above', 'left', 'right'].includes(p.label) ? p.label : 'below';
+      return '<li class="sg-pin" data-label="' + side + '" style="left:' + p.x + '%;top:' + p.y + '%"><button type="button" class="sg-node" data-stage="' + st.id + '" data-state="' + s + '" aria-selected="' + (st.id === S.sel) + '" aria-label="' + esc(st.id + ' ' + st.title + ' · ' + label) + '">'
+        + '<b>' + st.id + '</b><span class="sg-node__tag"><span>' + esc(st.title) + '</span><small>' + esc(label) + '</small></span>'
+        + (window.TaleliaDev ? '<i class="sg-node__xy" aria-hidden="true">' + p.x + ', ' + p.y + '</i>' : '') + '</button></li>';
+    }).join('');
+    renderGrid();
+  }
+  /** 좌표 맞추기 도움 (?dev=1 만 · 배포 빌드는 TaleliaDev 가 늘 거짓): 10% 격자 + 누른 곳 좌표 */
+  function renderGrid(){
+    const g = $('#sgGrid'); if(!window.TaleliaDev){ g.hidden = true; g.innerHTML = ''; return; }
+    if(g.dataset.ready) return; g.dataset.ready = '1'; g.hidden = false;
+    let h = ''; for(let i = 1; i < 10; i++) h += '<i class="sg-grid__v" style="left:' + i * 10 + '%"><em>' + i * 10 + '</em></i><i class="sg-grid__h" style="top:' + i * 10 + '%"><em>' + i * 10 + '</em></i>';
+    g.innerHTML = h + '<output class="sg-grid__out">x, y (%)</output>';
+    $('#sgWorld').addEventListener('pointermove', e => { const r = $('#sgWorld').getBoundingClientRect(), o = g.querySelector('output');
+      if(o) o.textContent = 'x ' + Math.round((e.clientX - r.left) / r.width * 1000) / 10 + ' · y ' + Math.round((e.clientY - r.top) / r.height * 1000) / 10; });
+  }
+  /** 가로 스크롤 지도(휴대폰 세로): 고른 노드를 지도 가운데로 */
+  function centerSel(smooth){
+    const map = $('#sgMap'), b = map && map.querySelector('.sg-node[aria-selected="true"]');
+    if(!b || map.scrollWidth <= map.clientWidth + 1) return;
+    const r = b.closest('.sg-pin').getBoundingClientRect(), m = map.getBoundingClientRect();
+    const left = map.scrollLeft + (r.left - m.left) - map.clientWidth / 2;
+    try{ map.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' }); }catch(e){ map.scrollLeft = Math.max(0, left); }
+  }
+
   function renderSheet(){
     const sv = save, st = X.stageOf(DS, S.sel), s = stateOf(sv, st), cleared = s === 'cleared';
     $('#sgShNo').textContent = st.id; $('#sgShTitle').textContent = st.title;
@@ -143,7 +198,7 @@
   }
 
   /* ---------- 고르기 · 입장 · 이어서 하기 ---------- */
-  function select(id){ if(!X.stageOf(DS, id)) return false; S.sel = id; render(); return true; }
+  function select(id){ if(!X.stageOf(DS, id)) return false; S.sel = id; render(); centerSel(true); return true; }
   /** 입장: 저장소에서 다시 읽고(다른 탭 반영) → (1-1 처음이면 안내 ②) → runId 기록 → 저장 → 이야기(또는 클리어 스테이지 건너뛰기 = 전투) 로 */
   function enter(id, opts){
     opts = opts || {}; const cur = reload(), st = X.stageOf(DS, id);
@@ -217,7 +272,7 @@
   }
   document.addEventListener('keydown', e => { if(e.key === 'Escape' && S.guide){ const g = S.guide; S.guide = null; if(g.kind === 'recruit'){ closeRecruit(g, 'later'); return; } const m = X.markGuide(reload(), g.kind === 'party' ? 'party' : 'dungeon'); if(m.ok && g.kind === 'dungeon') commit(m.save); else render(); } });
 
-  window.TaleliaStageUI = { S, get save(){ return save; }, render, select, enter, resume, applyReturn, urls, setNav: fn => { nav = fn; }, setNow: fn => { clock = fn; render(); }, commit, reload, power: { my: myPower, enemy: enemyPower } };
+  window.TaleliaStageUI = { S, get save(){ return save; }, render, select, centerSel, map: MAP, pathState: p => pathState(save, p), enter, resume, applyReturn, urls, setNav: fn => { nav = fn; }, setNow: fn => { clock = fn; render(); }, commit, reload, power: { my: myPower, enemy: enemyPower } };
   { const F = window.TaleliaStageRewardFix;   // 1장 보상 분배 변경의 차액 보충 (한 번만 · 저장 버전은 그대로)
     if(F){ const r = F.fix(DS, reload()); if(r.ok && !r.already){ save = r.save; store.save(save); if(r.added > 0 || r.tAdded > 0) S.notice = { text: F.message(r) }; } } }
   if(loaded.status === 'corrupt') S.notice = { text: '저장이 망가져 새로 시작했어요 (예전 저장은 따로 보관됐어요)', bad: true };
@@ -235,5 +290,6 @@
   { const bar = $('#sgBar'), fit = () => $('#stage').style.setProperty('--sg-bar-h', Math.ceil(bar.getBoundingClientRect().height) + 'px');
     if(window.ResizeObserver) new ResizeObserver(fit).observe(bar); fit();
     const node = $('.sg-node[aria-selected="true"]');
-    if(node && !S.notice && !S.guide && getComputedStyle(bar).position === 'fixed' && node.getBoundingClientRect().bottom > window.innerHeight - bar.getBoundingClientRect().height) node.scrollIntoView({ block: 'center' }); }
+    if(node && !S.notice && !S.guide && getComputedStyle(bar).position === 'fixed' && node.getBoundingClientRect().bottom > window.innerHeight - bar.getBoundingClientRect().height) node.scrollIntoView({ block: 'center' });
+    centerSel(false); addEventListener('orientationchange', () => setTimeout(() => centerSel(false), 300)); }   // 가로 스크롤 지도(휴대폰 세로): 고른 스테이지를 가운데로
 })();

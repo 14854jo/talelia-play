@@ -4,19 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#253B35">
+<meta name="color-scheme" content="only light">   <!-- 휴대폰 브라우저의 강제 다크 모드가 그림 · 색을 바꾸지 않게 (지인 배포 · 마을이 어둡게 보이던 문제) -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌳%3C/text%3E%3C/svg%3E">
 <title data-dev-title="TALELIA 마을 프로토타입">TALELIA · 마을</title>
-<script src="js/devmode.js?v=ec223e365bf9"></script>
+<script src="js/devmode.js?v=08630ddc70d4"></script>
 <!-- 2.5D 동물 마을 프로토타입 (1단계: 땅 + 카메라 · 2단계: 건물 · 장식 · 건물 정보 · 3단계: 동물 이동)
      · 그림 파일은 기존 images/chars/pebble_golem.webp (말랑이) 하나만 씁니다. (같은 폴더 안 · 외부 요청 아님)
      · 로그인 · 서버 호출 없음. 고정 예제 데이터만 사용합니다. (supabase · fit-village-api 를 불러오지 않음)
      · 외부 글꼴도 불러오지 않습니다. 이 폴더 안의 파일만 요청합니다.
      · 기존 화면(index.html)과 기존 게임 엔진은 건드리지 않습니다.
      · 주소 끝에 ?debug=1 을 붙이면 구역 이름 · 좌표 · 누른 칸을 보여 줍니다. -->
-<link rel="stylesheet" href="css/reset.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/variables.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/components.css?v=ec223e365bf9">
-<link rel="stylesheet" href="css/town.css?v=ec223e365bf9">
+<link rel="stylesheet" href="css/reset.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/variables.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/components.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/town.css?v=08630ddc70d4">
 </head>
 <body>
 <main id="town" class="town">
@@ -63,38 +64,38 @@
 </main>
 
 <!-- ui.js : 기존 공통 도우미(하단 시트 · esc). 서버를 부르지 않는 파일이며 고치지 않고 그대로 씁니다. -->
-<script src="js/ui.js?v=ec223e365bf9"></script>
-<script src="js/town/iso.js?v=ec223e365bf9"></script>
-<script src="js/town/world-data.js?v=ec223e365bf9"></script>
-<script src="js/town/ground.js?v=ec223e365bf9"></script>
-<script src="js/town/art.js?v=ec223e365bf9"></script>
-<script src="js/town/buildings.js?v=ec223e365bf9"></script>
-<script src="js/town/scene.js?v=ec223e365bf9"></script>
-<script src="js/town/pathfind.js?v=ec223e365bf9"></script>
-<script src="js/town/behavior.js?v=ec223e365bf9"></script>
-<script src="js/town/actors.js?v=ec223e365bf9"></script>
-<script src="js/town/camera.js?v=ec223e365bf9"></script>
+<script src="js/ui.js?v=08630ddc70d4"></script>
+<script src="js/town/iso.js?v=08630ddc70d4"></script>
+<script src="js/town/world-data.js?v=08630ddc70d4"></script>
+<script src="js/town/ground.js?v=08630ddc70d4"></script>
+<script src="js/town/art.js?v=08630ddc70d4"></script>
+<script src="js/town/buildings.js?v=08630ddc70d4"></script>
+<script src="js/town/scene.js?v=08630ddc70d4"></script>
+<script src="js/town/pathfind.js?v=08630ddc70d4"></script>
+<script src="js/town/behavior.js?v=08630ddc70d4"></script>
+<script src="js/town/actors.js?v=08630ddc70d4"></script>
+<script src="js/town/camera.js?v=08630ddc70d4"></script>
 <!-- 그래픽 교체 기반 (T1): 매니페스트(지금은 비어 있음) · 검사 · SVG 와 그림 파일 공존. ?gfx=svg = 매니페스트 무시 · ?gfx=debug = 기준점 겹쳐 보기 -->
-<script src="images/talelia/manifest.js?v=ec223e365bf9"></script>
-<script src="js/town/assets.js?v=ec223e365bf9"></script>
-<script src="js/town/gfx.js?v=ec223e365bf9"></script>
+<script src="images/talelia/manifest.js?v=08630ddc70d4"></script>
+<script src="js/town/assets.js?v=08630ddc70d4"></script>
+<script src="js/town/gfx.js?v=08630ddc70d4"></script>
 <!-- 스테이지 연결 (S4): 마을 구경(ch1_01)을 끝낸 표시 · 안내 ① 뽑기 · 모험 메뉴 = stage.html · 뽑기 저장(localStorage)만 읽고 씀 · 서버 연결 없음 -->
-<script src="data/gacha/species.js?v=ec223e365bf9"></script>
-<script src="js/gacha/rules.js?v=ec223e365bf9"></script>
-<script src="js/gacha/store.js?v=ec223e365bf9"></script>
-<script src="data/stage/chapter1.js?v=ec223e365bf9"></script>
-<script src="js/stage/rules.js?v=ec223e365bf9"></script>
-<script src="data/names.js?v=ec223e365bf9"></script>
-<script src="js/names.js?v=ec223e365bf9"></script>
+<script src="data/gacha/species.js?v=08630ddc70d4"></script>
+<script src="js/gacha/rules.js?v=08630ddc70d4"></script>
+<script src="js/gacha/store.js?v=08630ddc70d4"></script>
+<script src="data/stage/chapter1.js?v=08630ddc70d4"></script>
+<script src="js/stage/rules.js?v=08630ddc70d4"></script>
+<script src="data/names.js?v=08630ddc70d4"></script>
+<script src="js/names.js?v=08630ddc70d4"></script>
 <script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
-<script src="js/story/progress.js?v=ec223e365bf9"></script>
-<script src="js/town/stage-link.js?v=ec223e365bf9"></script>
-<script src="js/town/hub.js?v=ec223e365bf9"></script>
+<script src="js/story/progress.js?v=08630ddc70d4"></script>
+<script src="js/town/stage-link.js?v=08630ddc70d4"></script>
+<script src="js/town/hub.js?v=08630ddc70d4"></script>
 <!-- 설정 (저장 백업 · 불러오기 · 처음부터 다시): 장비 데이터 · 규칙은 불러올 파일 검사에만 씀 -->
-<script src="data/gacha/equipment.js?v=ec223e365bf9"></script>
-<script src="js/gacha/gear.js?v=ec223e365bf9"></script>
-<script src="js/save-backup.js?v=ec223e365bf9"></script>
-<script src="js/town/settings.js?v=ec223e365bf9"></script>
-<script src="js/town/town.js?v=ec223e365bf9"></script>
+<script src="data/gacha/equipment.js?v=08630ddc70d4"></script>
+<script src="js/gacha/gear.js?v=08630ddc70d4"></script>
+<script src="js/save-backup.js?v=08630ddc70d4"></script>
+<script src="js/town/settings.js?v=08630ddc70d4"></script>
+<script src="js/town/town.js?v=08630ddc70d4"></script>
 </body>
 </html>

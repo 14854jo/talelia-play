@@ -1,5 +1,6 @@
 /* TALELIA · reset.css */
 *,*::before,*::after{box-sizing:border-box}
+:root{color-scheme:only light}   /* 강제 다크 모드 방지 (각 화면의 <meta name="color-scheme" content="only light"> 와 같은 뜻) */
 html,body{margin:0;padding:0;height:100%}
 body{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 h1,h2,h3,p,ul,dl,dd,figure{margin:0}
