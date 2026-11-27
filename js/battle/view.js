@@ -240,9 +240,13 @@
   const Stage = window.TaleliaBattleRig;   // 없으면 리그 없이 정지 그림으로 동작
 
   const fxq = +q.get('fxscale');
+  /* 배속 버튼(×1 · ×2)으로 고른 값만 기억 (게임 저장과 별개의 칸 · 저장 공간을 못 쓰면 ×1) */
+  const SPEED_KEY = 'talelia.battle.speed';
+  function savedSpeed(){ try { return localStorage.getItem(SPEED_KEY) === '2' ? 2 : 1; } catch(e){ return 1; } }
   const app = { B: null, encounter: ENC_ID, returnUrl: RETURN, encError: false,
     mode: !ENC_ID && !PARTY && q.get('mode') === 'pvp' ? 'pvp' : 'pve', seed: +(q.get('seed') || 1) || 1, autoAlly: q.get('auto') === '1',
-    speed: q.has('speed') ? (q.get('speed') === 'step' ? 'step' : +q.get('speed')) : 1, pending: null, timer: 0, logShown: 0, busy: false, autoFlags: {},
+    // 배속: 주소 옵션 > 이 기기 기억 > ×1
+    speed: q.has('speed') ? (q.get('speed') === 'step' ? 'step' : +q.get('speed')) : savedSpeed(), pending: null, timer: 0, logShown: 0, busy: false, autoFlags: {},
     fxscale: fxq > 0 ? fxq : 1,
     reduced: q.get('motion') === 'reduce' ? true : q.get('motion') === 'full' ? false : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches),
     shown: {}, gen: 0, acting: null, trace: [],
@@ -448,6 +452,7 @@
     for(const b of document.querySelectorAll('[data-speed]')) b.classList.toggle('is-on', String(b.dataset.speed) === String(app.speed));
     $('#btAuto').classList.toggle('is-on', app.autoAlly); $('#btAuto').textContent = '자동 전투 ' + (app.autoAlly ? 'ON' : 'OFF');
     $('#btSeed').value = app.seed;
+    const sp = $('#btSpeed'); if(sp){ sp.textContent = '배속 ×' + (app.speed === 2 ? 2 : 1); sp.classList.toggle('is-on', app.speed === 2); sp.setAttribute('aria-pressed', String(app.speed === 2)); }
     const vb = $('#btVideoToggle'); if(vb){ vb.textContent = '필살기 영상 ' + (app.video.on ? 'ON' : 'OFF'); vb.setAttribute('aria-pressed', String(app.video.on)); }
   }
 
@@ -1081,6 +1086,8 @@
   for(const b of document.querySelectorAll('[data-speed]')) b.addEventListener('click', () => { app.speed = b.dataset.speed === 'step' ? 'step' : +b.dataset.speed; syncControls(); loop(); });
   $('#btAuto').addEventListener('click', () => { app.autoAlly = !app.autoAlly; app.pending = null; syncControls(); loop(); });
   $('#btStep').addEventListener('click', () => autoStep());
+  // 배속 버튼: 속도값과 표시만 바꿈 (loop 를 다시 부르지 않음 → 대기 시간 · 결과창이 다시 시작되지 않고, 다음 연출 단계부터 적용)
+  $('#btSpeed').addEventListener('click', () => { app.speed = app.speed === 2 ? 1 : 2; try{ localStorage.setItem(SPEED_KEY, String(app.speed)); }catch(e){} syncControls(); });
   $('#btVideoToggle').addEventListener('click', () => { app.video.on = !app.video.on; try{ localStorage.setItem('talelia.battle.ultvideo', app.video.on ? '1' : '0'); }catch(e){} preloadUltVideo(); syncControls(); });
   $('#btRestart').addEventListener('click', () => { app.seed = Math.max(1, Math.floor(+$('#btSeed').value) || 1); restart(); });
 

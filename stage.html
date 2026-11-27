@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#2a2238">
 <meta name="color-scheme" content="only light">   <!-- 휴대폰 브라우저의 강제 다크 모드가 그림 · 색을 바꾸지 않게 (지인 배포 · 마을이 어둡게 보이던 문제) -->
 <title data-dev-title="TALELIA 스테이지 (프로토타입)">TALELIA · 스테이지</title>
-<script src="js/devmode.js?v=08630ddc70d4"></script>
+<script src="js/devmode.js?v=1f4dce3c9d6a"></script>
 <!-- 스테이지 (S4 · docs/design/stage-system.md): 1장 지도 · 스테이지 시트 · 입장(story.html 전후 대사 → battle.html?stage=) · 돌아온 결과를 runId 로 한 번만 반영 · 안내 ② ③
      · 규칙 = js/stage/rules.js · 데이터 = data/stage/chapter1.js · 저장 = 뽑기 저장 v4 의 stage (js/gacha/store.js · 이 브라우저에만 · 서버 연결 없음) · 화면 = js/stage/ui.js
      · 주소 옵션: ?savekey=이름 (다른 저장 키 · 시험용) · ?now=2026-11-22T12:00:00 (시험용 시계)
@@ -17,11 +17,11 @@
   addEventListener('unhandledrejection', e => window.__stageErrors.push(String(e.reason)));
   (function(){ const ce = console.error; console.error = function(){ window.__stageErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
 </script>
-<link rel="stylesheet" href="css/reset.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/variables.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/gacha.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/topbar.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/stage.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/reset.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/variables.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/gacha.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/topbar.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/stage.css?v=1f4dce3c9d6a">
 </head>
 <body class="sg-body">
 <div id="stage" class="sg">
@@ -83,17 +83,17 @@
   </div>
 </div>
 
-<script src="js/topbar.js?v=08630ddc70d4"></script>
-<script src="data/gacha/species.js?v=08630ddc70d4"></script>
-<script src="js/gacha/rules.js?v=08630ddc70d4"></script>
-<script src="js/gacha/store.js?v=08630ddc70d4"></script>
-<script src="data/stage/chapter1.js?v=08630ddc70d4"></script>
-<script src="js/stage/rules.js?v=08630ddc70d4"></script>
-<script src="js/stage/reward-fix.js?v=08630ddc70d4"></script>
-<script src="data/names.js?v=08630ddc70d4"></script>
-<script src="js/names.js?v=08630ddc70d4"></script>
+<script src="js/topbar.js?v=1f4dce3c9d6a"></script>
+<script src="data/gacha/species.js?v=1f4dce3c9d6a"></script>
+<script src="js/gacha/rules.js?v=1f4dce3c9d6a"></script>
+<script src="js/gacha/store.js?v=1f4dce3c9d6a"></script>
+<script src="data/stage/chapter1.js?v=1f4dce3c9d6a"></script>
+<script src="js/stage/rules.js?v=1f4dce3c9d6a"></script>
+<script src="js/stage/reward-fix.js?v=1f4dce3c9d6a"></script>
+<script src="data/names.js?v=1f4dce3c9d6a"></script>
+<script src="js/names.js?v=1f4dce3c9d6a"></script>
 <script>TaleliaNames.applyFromStorage(new URLSearchParams(location.search).get("savekey") || undefined);</script>   <!-- 주인공 이름 (24호 → 엘피): 1-1 클리어 저장이면 표시 이름만 바꿈 -->
-<script src="js/stage/map-layout.js?v=08630ddc70d4"></script>
-<script src="js/stage/ui.js?v=08630ddc70d4"></script>
+<script src="js/stage/map-layout.js?v=1f4dce3c9d6a"></script>
+<script src="js/stage/ui.js?v=1f4dce3c9d6a"></script>
 </body>
 </html>

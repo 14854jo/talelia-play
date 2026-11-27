@@ -74,22 +74,24 @@ window.TALELIA_GACHA = {
     g_basic:        { name: '기본 공격', kind: 'attack', target: 'enemy_single', mult: 1.2, hits: 1, cooldown: 0 },
     g_basic_08:     { name: '기본 공격', kind: 'attack', target: 'enemy_single', mult: 0.96, hits: 1, cooldown: 0 },
     // V3 (밸런스 v3 · V4): 단일 대상 공격은 기본 ×1.2 · 필살 ×1.45 (일반 350% → 508% · 고급 360% → 522%)
+    // 전투 길이 조정 (d'): 뽑기 캐릭터 필살기 쿨타임 1 감소 (3 → 2 · 4 → 3 · 오리 깃털 붕대 2 는 그대로 · 미공개 신규 3종은 아직 그대로)
+    //   스토리 3종(data/battle-proto.js) · cooldownStartReady 는 그대로 → 프롤로그 · 기준 로그 46개 변화 없음
     // 일반: 적 1명 · 1회
-    g_hoe_slam:     { name: '괭이 내려치기', kind: 'attack', target: 'enemy_single', mult: 5.08, hits: 1, cooldown: 3, tag: 'ultimate' },
-    g_acorn_shot:   { name: '도토리 투석', kind: 'attack', target: 'enemy_single', mult: 5.08, hits: 1, cooldown: 3, tag: 'ultimate' },
+    g_hoe_slam:     { name: '괭이 내려치기', kind: 'attack', target: 'enemy_single', mult: 5.08, hits: 1, cooldown: 2, tag: 'ultimate' },
+    g_acorn_shot:   { name: '도토리 투석', kind: 'attack', target: 'enemy_single', mult: 5.08, hits: 1, cooldown: 2, tag: 'ultimate' },
     // 고급: 적 1명 · 2회 / 아군 1명 회복
-    g_pick_combo:   { name: '곡괭이 연타', kind: 'attack', target: 'enemy_single', mult: 5.22, hits: 2, cooldown: 3, tag: 'ultimate' },
+    g_pick_combo:   { name: '곡괭이 연타', kind: 'attack', target: 'enemy_single', mult: 5.22, hits: 2, cooldown: 2, tag: 'ultimate' },
     g_mend:         { name: '깃털 붕대', kind: 'heal', target: 'ally_single', pctMaxHp: 0.3, cooldown: 2, tag: 'ultimate' },
     // 영웅: 적 2명 · 1회 + 약한 상태이상
-    g_shell_bash:   { name: '등껍질 박치기', kind: 'attack', target: 'enemy_n', count: 2, mult: 1.8, hits: 1, cooldown: 3, tag: 'ultimate',
+    g_shell_bash:   { name: '등껍질 박치기', kind: 'attack', target: 'enemy_n', count: 2, mult: 1.8, hits: 1, cooldown: 2, tag: 'ultimate',
                       status: { type: 'weaken', chance: 0.5, turns: 2, value: 0.15 } },
-    g_foxfire:      { name: '여우불', kind: 'attack', target: 'enemy_n', count: 2, mult: 2.2, hits: 1, cooldown: 3, tag: 'ultimate',
+    g_foxfire:      { name: '여우불', kind: 'attack', target: 'enemy_n', count: 2, mult: 2.2, hits: 1, cooldown: 2, tag: 'ultimate',
                       status: { type: 'poison', chance: 0.6, turns: 2, value: 0.04 } },   // v2 4단계: 약화 → 중독 2턴 4% (확률 0.6 그대로)
     // 전설: 적 3명 · 3회 타격(합계 250%) + 상태이상 (부엉이 현자의 수면 = 기절)
-    g_sleep_spell:  { name: '잠의 주문', kind: 'attack', target: 'enemy_n', count: 3, mult: 2.5, hits: 3, cooldown: 4, tag: 'ultimate',
+    g_sleep_spell:  { name: '잠의 주문', kind: 'attack', target: 'enemy_n', count: 3, mult: 2.5, hits: 3, cooldown: 3, tag: 'ultimate',
                       status: { type: 'stun', chance: 0.3, turns: 1 } },
     // 설화: 적 전체 · 2회 + 상태이상
-    g_moon_pound:   { name: '월광 떡방아', kind: 'attack', target: 'enemy_all', mult: 3.0, hits: 2, cooldown: 4, tag: 'ultimate',
+    g_moon_pound:   { name: '월광 떡방아', kind: 'attack', target: 'enemy_all', mult: 3.0, hits: 2, cooldown: 3, tag: 'ultimate',
                       status: { type: 'poison', chance: 0.6, turns: 2, value: 0.06 } },
     // V3-5b 신규 1차 (docs/design/new-characters-v1.md · 수치는 설계안 그대로 · 밸런스는 캐릭터 8종쯤 갖춰진 뒤 한 번에)
     // 일반 곰: 단일 강타 (일반 V4 값 5.08 · 1타)

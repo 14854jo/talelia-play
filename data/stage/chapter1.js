@@ -12,6 +12,8 @@
  *    placeholder= true 면 그림이 아직 없는 자리 (이름표에 "디자인 준비 중")
  *  V3 다시 맞춤(120명 × 25판 · 평균 / 하위 10%): 1-1 100 / 100 (s 1.2 고정) · 1-2 97.8 / 96 · 1-3 95.3 / 92 · 1-4 91.7 / 76 · 1-5 90.3 / 80 · 1-6 85.3 / 60
  *  V3 (밸런스 v3 · V4): 적 기본 체력 × 0.8 · 공격 × 1.15 (체력 대비 공격 비율을 높임 · 승률이 그대로가 되게 s 를 다시 맞춤 · 아래 표)
+ *  전투 길이 조정 (d'): enemyTypes 의 체력만 × 0.85 (반올림 · 공격 · 방어 · 속도 · s · 변이 배율은 그대로 · 1장 적에만 적용 · 던전 · 시험 전투 · 프롤로그 적은 별도 데이터)
+ *    예전 체력: 배추벌레 800 · 달팽이 1120 · 메뚜기 720 · 나방 672 · 풍뎅이 우두머리 1280 · 회수 기계 4800 · 연구소 기계 1280 · 로봇 1120
  *  stages[].s  : 스테이지 세기 배율 (S2 제안값 · 승인 후 확정) = 시작 상태 6명(10회 뽑기 1번 + 스토리 3종 · 장비 없음) 120명 × 25판 자동 전투로 맞춤
  *    측정(평균 / 하위 10%): 1-1 100 / 100 · 1-2 98 / 92 · 1-3 94.4 / 80 · 1-4 92.7 / 72 · 1-5 89.8 / 68 · 1-6 86.3 / 44  (1-1 은 튜토리얼이라 s 1.2 고정)
  *    목표 승률(제안): 1-1 100% · 1-2 98% · 1-3 95% · 1-4 92% · 1-5 90% · 1-6 85%
@@ -28,14 +30,14 @@
     last: '1-6',                                    // 이 스테이지를 처음 클리어하면 던전 개방
     mutant: { hp: 1.3, atk: 1.3 },                  // 변이 배율 (제안)
     enemyTypes: {
-      cabbage_worm: { name: '배추벌레', img: 'images/battle/enemies/enemy_cabbage_worm.webp', shape: 'circle', color: '#7a9a4a', hp: 800, atk: 138, def: 20, spd: 80, skills: ['atk_basic'] },
-      snail:        { name: '달팽이',   img: 'images/battle/enemies/enemy_snail.webp',        shape: 'circle', color: '#9a7a5a', hp: 1120, atk: 161, def: 60, spd: 60, skills: ['atk_basic'] },
-      grasshopper:  { name: '메뚜기',   img: 'images/battle/enemies/enemy_grasshopper.webp',  shape: 'circle', color: '#6a9a3a', hp: 720, atk: 253, def: 20, spd: 120, skills: ['atk_basic'] },
-      moth:         { name: '나방',     img: 'images/battle/enemies/enemy_moth.webp',         shape: 'circle', color: '#a09080', hp: 672, atk: 207, def: 20, spd: 100, skills: ['atk_basic', 'aoe_snipe'] },
-      scarab_chief: { name: '풍뎅이 우두머리', img: 'images/battle/enemies/boss_beetle_chief.webp', shape: 'square', color: '#5a4a3a', hp: 1280, atk: 207, def: 60, spd: 85, skills: ['atk_basic'] },   // 1-4 중간 보스 (N4 · 능력치는 예전 기계 자리 그대로 · 그림은 기존 딱정벌레 대장 그림을 임시로)
-      retriever:    { name: '회수 기계', img: 'images/battle/enemies/enemy_retriever_boss.webp', shape: 'square', color: '#6b5a6e', hp: 4800, atk: 322, def: 60, spd: 75, skills: ['atk_basic', 'ult_walnut'], boss: true },   // 1장 보스 (N4 · 능력치는 예전 딱정벌레 대장 그대로 · 등에 텅 빈 철창 · 외형 설계 추후 · 지금은 임시 도형)
-      machine:      { name: '연구소 기계', img: 'images/battle/enemies/enemy_guard.webp', shape: 'square', color: '#6f7d8a', hp: 1280, atk: 207, def: 60, spd: 85, skills: ['atk_basic'] },                       // 경비 기계 그림 (enemy_guard)
-      robot:        { name: '로봇',     img: 'images/battle/enemies/enemy_scout.webp', shape: 'square', color: '#8a6f5a', hp: 1120, atk: 184, def: 50, spd: 90, skills: ['atk_basic'] }                        // 1-2 마더를 습격하는 로봇 · 임시 도형 (그림이 생기면 img 만 교체)
+      cabbage_worm: { name: '배추벌레', img: 'images/battle/enemies/enemy_cabbage_worm.webp', shape: 'circle', color: '#7a9a4a', hp: 680, atk: 138, def: 20, spd: 80, skills: ['atk_basic'] },
+      snail:        { name: '달팽이',   img: 'images/battle/enemies/enemy_snail.webp',        shape: 'circle', color: '#9a7a5a', hp: 952, atk: 161, def: 60, spd: 60, skills: ['atk_basic'] },
+      grasshopper:  { name: '메뚜기',   img: 'images/battle/enemies/enemy_grasshopper.webp',  shape: 'circle', color: '#6a9a3a', hp: 612, atk: 253, def: 20, spd: 120, skills: ['atk_basic'] },
+      moth:         { name: '나방',     img: 'images/battle/enemies/enemy_moth.webp',         shape: 'circle', color: '#a09080', hp: 571, atk: 207, def: 20, spd: 100, skills: ['atk_basic', 'aoe_snipe'] },
+      scarab_chief: { name: '풍뎅이 우두머리', img: 'images/battle/enemies/boss_beetle_chief.webp', shape: 'square', color: '#5a4a3a', hp: 1088, atk: 207, def: 60, spd: 85, skills: ['atk_basic'] },   // 1-4 중간 보스 (N4 · 능력치는 예전 기계 자리 그대로 · 그림은 기존 딱정벌레 대장 그림을 임시로)
+      retriever:    { name: '회수 기계', img: 'images/battle/enemies/enemy_retriever_boss.webp', shape: 'square', color: '#6b5a6e', hp: 4080, atk: 322, def: 60, spd: 75, skills: ['atk_basic', 'ult_walnut'], boss: true },   // 1장 보스 (N4 · 능력치는 예전 딱정벌레 대장 그대로 · 등에 텅 빈 철창 · 외형 설계 추후 · 지금은 임시 도형)
+      machine:      { name: '연구소 기계', img: 'images/battle/enemies/enemy_guard.webp', shape: 'square', color: '#6f7d8a', hp: 1088, atk: 207, def: 60, spd: 85, skills: ['atk_basic'] },                       // 경비 기계 그림 (enemy_guard)
+      robot:        { name: '로봇',     img: 'images/battle/enemies/enemy_scout.webp', shape: 'square', color: '#8a6f5a', hp: 952, atk: 184, def: 50, spd: 90, skills: ['atk_basic'] }                        // 1-2 마더를 습격하는 로봇 · 임시 도형 (그림이 생기면 img 만 교체)
     },
     stages: [
       { id: '1-1', n: 1, title: '해충 퇴치', place: 'farm_field', s: 1.2, reward: { stones: 300, gold: 1000, tstones: 2 },

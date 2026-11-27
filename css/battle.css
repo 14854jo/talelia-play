@@ -144,6 +144,7 @@ html:not(.is-dev) .bt{--bt-tools-h:16px}   /* 일반 접속: 아래 도구 줄 �
 .bt-hud .bt-btn{font-size:max(11px, .9cqw)}
 .bt-step{background:var(--tl-gold)}
 .bt-auto.is-on{background:var(--tl-coral, #D98772);color:#fff}
+.bt-speed{white-space:nowrap}   /* 전투 배속 ×1 · ×2 (×2 = .bt-btn.is-on) */
 
 /* 로그 서랍 (오른쪽 · 기본 닫힘) */
 .bt-logbox{position:absolute;right:0;top:3.6cqw;bottom:5.2cqw;z-index:55;width:min(34cqw, 420px);display:flex;flex-direction:column;padding:10px 12px;
@@ -280,7 +281,7 @@ html:not(.is-dev) .bt{--bt-tools-h:16px}   /* 일반 접속: 아래 도구 줄 �
 /* 작은 전장(휴대폰): 누르는 버튼을 크게 · 이름이 덜 잘리게 */
 @container (max-width: 760px){
   .bt-hud .bt-hud-btn{min-height:28px;padding:0 10px}
-  .bt-hud .bt-auto,.bt-hud .bt-step{min-height:36px}
+  .bt-hud .bt-auto,.bt-hud .bt-step,.bt-hud .bt-speed{min-height:36px}
   .bt-hud .bt-skill{min-height:36px}
 }
 @container (max-width: 700px){
@@ -305,7 +306,7 @@ html:not(.is-dev) .bt{--bt-tools-h:16px}   /* 일반 접속: 아래 도구 줄 �
   .bt .bt-hud .bt-skill{min-height:48px;padding:6px 12px;border-radius:10px;font-size:13px}
   .bt .bt-hud .bt-skill small{font-size:11px}
   .bt .bt-hint{flex-basis:100%;font-size:11px}
-  .bt .bt-hud .bt-auto,.bt .bt-hud .bt-step{min-height:44px;font-size:13px}
+  .bt .bt-hud .bt-auto,.bt .bt-hud .bt-step,.bt .bt-hud .bt-speed{min-height:44px;font-size:13px}
   .bt .bt-unit .bt-plate{width:8.6cqw;padding:1px;top:2px}
   .bt .bt-unit .bt-name,.bt .bt-unit .bt-hp b,.bt .bt-unit .bt-cds,.bt .bt-unit .bt-buffs{display:none}   /* 좁은 전장: 이름표는 HP 막대만 (차례는 아래 "지금 차례"와 테두리로) */
   .bt .bt-unit .bt-hp{height:5px;margin:0}

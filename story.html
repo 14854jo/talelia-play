@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#253B35">
 <meta name="color-scheme" content="only light">   <!-- 휴대폰 브라우저의 강제 다크 모드가 그림 · 색을 바꾸지 않게 (지인 배포 · 마을이 어둡게 보이던 문제) -->
 <title data-dev-title="TALELIA 대화 장면 프로토타입">TALELIA · 이야기</title>
-<script src="js/devmode.js?v=08630ddc70d4"></script>
+<script src="js/devmode.js?v=1f4dce3c9d6a"></script>
 <!-- 스토리 대화 장면 1단계 (대본 읽기 · 대화창 · 표정 그림 무대)
      · 대본 읽기 = js/story/parser.js · 무대 = js/story/stage.js · 대화창 = js/story/dialog.js · 진행 = js/story/player.js
      · 등장인물 · 표정 · 배경 표 = data/story/cast.js · 대본 = data/story/scenes/*.js
@@ -22,10 +22,10 @@
   addEventListener('unhandledrejection', e => window.__storyErrors.push(String(e.reason)));
   (function(){ const ce = console.error; console.error = function(){ window.__storyErrors.push([].join.call(arguments, ' ')); return ce.apply(console, arguments); }; })();
 </script>
-<link rel="stylesheet" href="css/reset.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/variables.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/story.css?v=08630ddc70d4">
-<link rel="stylesheet" href="css/topbar.css?v=08630ddc70d4">
+<link rel="stylesheet" href="css/reset.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/variables.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/story.css?v=1f4dce3c9d6a">
+<link rel="stylesheet" href="css/topbar.css?v=1f4dce3c9d6a">
 </head>
 <body>
 <main class="st-page">
@@ -67,18 +67,18 @@
     <pre id="stWarnList" class="st-warn" hidden></pre>
   </section>
 </main>
-<script src="js/topbar.js?v=08630ddc70d4"></script>
-<script src="data/story/cast.js?v=08630ddc70d4"></script>
-<script src="data/story/scenes/prologue.js?v=08630ddc70d4"></script>
-<script src="data/story/scenes/chapter1.js?v=08630ddc70d4"></script>
-<script src="data/story/scenes/demo.js?v=08630ddc70d4"></script>
-<script src="js/story/parser.js?v=08630ddc70d4"></script>
-<script src="js/story/stage.js?v=08630ddc70d4"></script>
-<script src="js/story/dialog.js?v=08630ddc70d4"></script>
-<script src="js/story/fx.js?v=08630ddc70d4"></script>
-<script src="data/names.js?v=08630ddc70d4"></script>
-<script src="js/names.js?v=08630ddc70d4"></script>
-<script src="js/story/progress.js?v=08630ddc70d4"></script>
-<script src="js/story/player.js?v=08630ddc70d4"></script>
+<script src="js/topbar.js?v=1f4dce3c9d6a"></script>
+<script src="data/story/cast.js?v=1f4dce3c9d6a"></script>
+<script src="data/story/scenes/prologue.js?v=1f4dce3c9d6a"></script>
+<script src="data/story/scenes/chapter1.js?v=1f4dce3c9d6a"></script>
+<script src="data/story/scenes/demo.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/parser.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/stage.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/dialog.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/fx.js?v=1f4dce3c9d6a"></script>
+<script src="data/names.js?v=1f4dce3c9d6a"></script>
+<script src="js/names.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/progress.js?v=1f4dce3c9d6a"></script>
+<script src="js/story/player.js?v=1f4dce3c9d6a"></script>
 </body>
 </html>
